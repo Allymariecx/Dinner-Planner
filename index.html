@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dinner Planner 2026–2027</title>
+<style>
+:root{
+  --bg:#dde4d8;
+  --card:#eef2eb;
+  --border:#c8d3c2;
+  --text:#1c1b18;
+  --muted:#7a8a74;
+  --accent:#364b30;
+  --weekend:#e6ede2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2.5rem 1.5rem 4rem}
+.page{max-width:980px;margin:auto}
+
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2.2rem;flex-wrap:wrap;gap:12px}
+.hd-eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.hd-title{font-size:2rem;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.hd-sub{font-size:13px;color:var(--muted);margin-top:6px}
+.hd-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hd-btn{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:6px;transition:all .15s}
+.hd-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hd-btn.danger:hover{background:#c0392b;border-color:#c0392b}
+.hd-btn.hi{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hd-btn.hi:hover{background:#4a6642}
+
+.month-nav{display:flex;align-items:center;gap:16px;margin-bottom:.8rem}
+.month-info{flex:1}
+.month-name{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+.month-badges{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.month-meta{font-size:12px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;letter-spacing:.04em}
+.badge-locked{background:#dce8d8;color:#3a5c34;border:1px solid #b8cfb3}
+.badge-future{background:#fef0d9;color:#6b4211;border:1px solid #f5c97a}
+.badge-regen{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;padding:3px 10px}
+.badge-regen:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.arr{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s;flex-shrink:0}
+.arr:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.arr:disabled{opacity:.3;cursor:default}
+.arr:disabled:hover{background:var(--card);color:var(--text);border-color:var(--border)}
+
+.prog-row{display:flex;align-items:center;gap:12px;margin-bottom:1.4rem}
+.prog-dots{display:flex;gap:5px}
+.prog-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .3s,transform .3s}
+.prog-dot.done{background:var(--accent)}
+.prog-dot.active{background:var(--accent);transform:scale(1.3)}
+.prog-text{font-size:11px;color:var(--muted)}
+
+.cal-hd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-hd span{text-align:center;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+
+.day{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 10px 12px;min-height:96px;display:flex;flex-direction:column;transition:box-shadow .2s,transform .15s,border-color .15s}
+.day:not(.empty):hover{box-shadow:0 6px 24px rgba(0,0,0,0.11);transform:translateY(-2px);border-color:#afc2a9}
+.day.empty{background:none;border-color:transparent;pointer-events:none}
+.day.weekend{background:var(--weekend)}
+.day.today{border-color:#8ab07e;box-shadow:0 0 0 2px #c6dfc1}
+.d-num{font-size:16px;font-weight:700;color:var(--text);line-height:1}
+.d-dow{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.d-spacer{flex:1}
+
+.meal-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;border:none;outline:none;transition:filter .15s,transform .1s;margin-top:10px;text-align:left;white-space:nowrap;max-width:100%}
+.meal-pill:hover{filter:brightness(.92);transform:scale(1.04)}
+.pill-ico{font-size:13px;flex-shrink:0}
+.pill-lbl{overflow:hidden;text-overflow:ellipsis}
+.custom-badge{font-size:8px;background:rgba(0,0,0,0.13);border-radius:5px;padding:1px 4px;margin-left:2px;font-weight:700}
+
+.pasta   {background:#EEEDFE;color:#3C3489}
+.easy    {background:#EDEDE8;color:#44433E}
+.meaty   {background:#E1F5EE;color:#085041}
+.handheld{background:#FAECE7;color:#712B13}
+.taco    {background:#FEF0D9;color:#6B4211}
+
+.ov{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.28);display:none}
+.ov.open{display:block}
+
+/* swap pop */
+.pop{position:fixed;z-index:1000;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;width:292px;box-shadow:0 16px 48px rgba(0,0,0,0.18);display:none;max-height:90vh;overflow-y:auto}
+.pop.open{display:block}
+.pop-eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.pop-date{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
+.pop-current{font-size:11px;color:var(--muted);margin-bottom:12px}
+.pop-shuffle{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:7px;display:flex;align-items:center;justify-content:center;gap:6px}
+.pop-shuffle:hover{background:#4a6642}
+.frozen-btn{width:100%;background:#EDEDE8;color:#44433E;border:1px solid #d0d0c8;border-radius:10px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.frozen-btn:hover{background:#ddddd5}
+.pop-divider{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pop-opts{display:flex;flex-wrap:wrap;gap:6px}
+.pop-opt{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:filter .1s,transform .1s,opacity .1s}
+.pop-opt:hover:not(.inv){filter:brightness(.9);transform:scale(1.05)}
+.pop-opt.inv{opacity:.28;cursor:not-allowed}
+.pop-opt.cur{box-shadow:0 0 0 2.5px var(--accent)}
+.pop-opt .cs{font-size:8px;margin-left:2px;opacity:.75}
+.pop-opt .cnt{font-size:9px;margin-left:3px;opacity:.65;font-weight:600}
+
+/* manage meals modal */
+.modal-wrap{position:fixed;inset:0;z-index:1100;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-wrap.open{display:flex}
+.modal{background:var(--card);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.22);padding:28px}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
+.modal-title{font-size:1.2rem;font-weight:700;letter-spacing:-.02em}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6}
+.modal-close{background:none;border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-close:hover{background:var(--bg)}
+.msec{margin-bottom:24px}
+.msec-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.meal-list{display:flex;flex-direction:column;gap:8px}
+.meal-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+.mr-ico{font-size:20px;flex-shrink:0;padding-top:2px}
+.mr-info{flex:1;min-width:0}
+.mr-name{font-size:13px;font-weight:600}
+.mr-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-top:3px}
+.mr-del{background:none;border:1px solid #e0b8b0;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;color:#b03020;font-weight:600;flex-shrink:0;margin-top:2px}
+.mr-del:hover{background:#fff0ee}
+.default-row{opacity:.7}
+.cap-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px}
+.cap-label{font-size:11px;color:var(--muted)}
+.cap-ctrl{display:flex;align-items:center;gap:5px}
+.cap-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:7px;background:var(--card);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text);line-height:1}
+.cap-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cap-val{font-size:12px;font-weight:700;min-width:32px;text-align:center}
+
+/* add form */
+.add-form{display:flex;flex-direction:column;gap:14px}
+.fl{display:flex;flex-direction:column;gap:5px}
+.flabel{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.finput{border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;width:100%}
+.finput:focus{border-color:#8aaa80}
+.fselect{border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;cursor:pointer;width:100%}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.emoj{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.emoj:hover{background:var(--card);border-color:#8aaa80}
+.emoj.picked{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 1.5px var(--accent)}
+.fnote{font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg);border-radius:10px;padding:11px 13px;border:1px solid var(--border)}
+.fadd{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+.fadd:hover{background:#4a6642}
+.fadd:disabled{opacity:.38;cursor:not-allowed}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);align-items:center}
+.leg-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+.ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+.snack{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;z-index:2000;opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;white-space:nowrap}
+.snack.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media print{
+  .page-hd .hd-actions,.arr,.pop,.ov,.snack,.prog-row,.modal-wrap,.badge-regen{display:none!important}
+  .day:hover{box-shadow:none!important;transform:none!important}
+  .day{min-height:80px}
+  body{background:#fff;padding:.5rem}
+}
+@media(max-width:580px){
+  body{padding:1.2rem .7rem 3rem}
+  .day{min-height:72px;padding:7px;border-radius:10px}
+  .d-num{font-size:13px}
+  .meal-pill{font-size:9px;padding:4px 7px}
+  .pill-ico{display:none}
+  .hd-title{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-hd">
+    <div class="hd-left">
+      <div class="hd-eyebrow">🍽 Meal Planning</div>
+      <div class="hd-title">Dinner Planner</div>
+      <div class="hd-sub">May 2026 – April 2027 &nbsp;·&nbsp; Months generate fresh from your meal pool</div>
+    </div>
+    <div class="hd-actions">
+      <button class="hd-btn hi" id="manageMealsBtn">✦ Manage Meals</button>
+      <button class="hd-btn" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="hd-btn danger" id="resetBtn">↺ Reset All</button>
+    </div>
+  </div>
+
+  <div class="month-nav">
+    <button class="arr" id="prev">&#8592;</button>
+    <div class="month-info">
+      <div class="month-name" id="mName"></div>
+      <div class="month-badges">
+        <span class="month-meta" id="mMeta"></span>
+        <span class="badge" id="mBadge" style="display:none"></span>
+        <button class="badge badge-regen" id="regenBtn" style="display:none">↺ Regenerate month</button>
+      </div>
+    </div>
+    <button class="arr" id="next">&#8594;</button>
+  </div>
+
+  <div class="prog-row">
+    <div class="prog-dots" id="progDots"></div>
+    <div class="prog-text" id="progText"></div>
+  </div>
+
+  <div class="cal-hd">
+    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+  </div>
+  <div class="cal-grid" id="grid"></div>
+
+  <div class="legend">
+    <span class="leg-hd">Key</span>
+    <div class="leg"><div class="ldot" style="background:#AFA9EC"></div>Pasta</div>
+    <div class="leg"><div class="ldot" style="background:#FAC775"></div>Tacos</div>
+    <div class="leg"><div class="ldot" style="background:#F0997B"></div>Sandwiches &amp; burgers</div>
+    <div class="leg"><div class="ldot" style="background:#5DCAA5"></div>Hearty</div>
+    <div class="leg"><div class="ldot" style="background:#C8C7C0"></div>Easy night</div>
+  </div>
+</div>
+
+<div class="ov" id="ov"></div>
+
+<!-- Swap popover -->
+<div class="pop" id="pop">
+  <div class="pop-eyebrow">Change dinner</div>
+  <div class="pop-date" id="popDate"></div>
+  <div class="pop-current" id="popCurrent"></div>
+  <button class="pop-shuffle" id="shuffleBtn">🔀 Auto-fill for me</button>
+  <button class="frozen-btn" id="frozenBtn">🧊 Frozen — quick night!</button>
+  <div class="pop-divider">Or pick one</div>
+  <div class="pop-opts" id="popOpts"></div>
+</div>
+
+<!-- Manage Meals modal -->
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Manage Meals</div>
+        <div class="modal-sub">Add meals to the pool. New meals are included when future months generate.<br>Custom meals also appear when you manually swap any day.</div>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+
+    <div class="msec">
+      <div class="msec-title">Add a new meal</div>
+      <div class="add-form">
+        <div class="fl">
+          <label class="flabel">Meal name</label>
+          <input class="finput" id="newName" type="text" placeholder="e.g. Grilled Cheese &amp; Tomato Soup" maxlength="40">
+        </div>
+        <div class="fl">
+          <label class="flabel">Category <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(sets the color)</span></label>
+          <select class="fselect" id="newCat">
+            <option value="easy">Easy night (gray)</option>
+            <option value="meaty">Hearty (green)</option>
+            <option value="handheld">Sandwiches &amp; burgers (coral)</option>
+            <option value="taco">Tacos / Mexican (amber)</option>
+            <option value="pasta">Pasta (purple) — 5-day spacing applies</option>
+          </select>
+        </div>
+        <div class="fl">
+          <label class="flabel">Pick an icon</label>
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+        <div class="fnote">
+          💡 New meals are included the next time an upcoming month generates. Already-generated months won't change unless you hit Regenerate on them, or swap days individually.
+        </div>
+        <button class="fadd" id="addBtn" disabled>Add to my planner</button>
+      </div>
+    </div>
+
+    <div class="msec" id="customSec" style="display:none">
+      <div class="msec-title">Your custom meals <span id="customCount" style="font-weight:400;text-transform:none;letter-spacing:0"></span></div>
+      <div class="meal-list" id="customList"></div>
+    </div>
+
+    <div class="msec">
+      <div class="msec-title">Default meals</div>
+      <div class="meal-list" id="defaultList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="snack" id="snack"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// MEALS
+// ─────────────────────────────────────────────────────────────────────────────
+const CAT_LABELS={pasta:"Pasta",easy:"Easy night",meaty:"Hearty",handheld:"Sandwiches & burgers",taco:"Tacos / Mexican"};
+const FROZEN_ID="m2";
+
+const DEFAULT_MEALS=[
+  {n:"Spaghetti",    c:"pasta",    ico:"🍝",id:"m0"},
+  {n:"Alfredo",      c:"pasta",    ico:"🍜",id:"m1"},
+  {n:"Frozen",       c:"easy",     ico:"🧊",id:"m2",alwaysValid:true},
+  {n:"Takeout",      c:"easy",     ico:"🥡",id:"m3"},
+  {n:"Tacos",        c:"taco",     ico:"🌮",id:"m4"},
+  {n:"Meatloaf",     c:"meaty",    ico:"🍖",id:"m5"},
+  {n:"Shake-N-Bake", c:"meaty",    ico:"🍗",id:"m6"},
+  {n:"Burgers",      c:"handheld", ico:"🍔",id:"m7"},
+  {n:"Chkn Sandwich",c:"handheld", ico:"🥪",id:"m8"},
+  {n:"Meatball Sub", c:"handheld", ico:"🥖",id:"m9"},
+  {n:"Chkn Nuggets", c:"handheld", ico:"🍗",id:"m10"},
+];
+
+const MONTHS=[
+  [2026,4,"May 2026"],[2026,5,"June 2026"],[2026,6,"July 2026"],
+  [2026,7,"August 2026"],[2026,8,"September 2026"],[2026,9,"October 2026"],
+  [2026,10,"November 2026"],[2026,11,"December 2026"],
+  [2027,0,"January 2027"],[2027,1,"February 2027"],
+  [2027,2,"March 2027"],[2027,3,"April 2027"]
+];
+const DOWS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MNAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function daysIn(y,m){return new Date(y,m+1,0).getDate()}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STORAGE KEYS
+// ─────────────────────────────────────────────────────────────────────────────
+const STORE_KEY   = 'dpMonthStore_v1';   // per-month generated data
+const CUSTOM_KEY  = 'dpCustomMeals_v1';  // user-added meals
+const CAPS_KEY    = 'dpMealCaps_v1';     // per-meal monthly caps
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM MEALS
+// ─────────────────────────────────────────────────────────────────────────────
+let customMeals=[];
+try{const s=localStorage.getItem(CUSTOM_KEY);customMeals=s?JSON.parse(s):[]}catch(e){}
+function allMeals(){return[...DEFAULT_MEALS,...customMeals]}
+function mealById(id){return allMeals().find(m=>m.id===id)||DEFAULT_MEALS[2]}
+function saveCustom(){try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(customMeals))}catch(e){}}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAPS
+// ─────────────────────────────────────────────────────────────────────────────
+const DEFAULT_CAP=4;
+let mealCaps={};
+try{const s=localStorage.getItem(CAPS_KEY);mealCaps=s?JSON.parse(s):{}}catch(e){}
+function capFor(id){if(id===FROZEN_ID)return Infinity;return mealCaps[id]??DEFAULT_CAP}
+function setCapFor(id,v){mealCaps[id]=v;try{localStorage.setItem(CAPS_KEY,JSON.stringify(mealCaps))}catch(e){}}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MONTH STORE
+// monthStore[idx] = { days: string[], locked: bool }
+// days[i] = mealId for the i-th day of that month
+// locked = true means it's past or current → no regeneration allowed
+// ─────────────────────────────────────────────────────────────────────────────
+let monthStore={};
+try{const s=localStorage.getItem(STORE_KEY);monthStore=s?JSON.parse(s):{}}catch(e){}
+function saveStore(){try{localStorage.setItem(STORE_KEY,JSON.stringify(monthStore))}catch(e){}}
+
+// Which month index is "now"
+function currentMonthIdx(){
+  const now=new Date();
+  return MONTHS.findIndex(([y,m])=>now.getFullYear()===y&&now.getMonth()===m);
+}
+
+// A month is locked if it's the current month or in the past
+function isLocked(idx){
+  const ci=currentMonthIdx();
+  return ci>=0&&idx<=ci;
+}
+
+// Count how many times a mealId appears in a stored month
+function monthCount(mealId,monthDays){
+  return monthDays.filter(id=>id===mealId).length;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GENERATION
+// ─────────────────────────────────────────────────────────────────────────────
+function generateMonth(idx){
+  const [y,m]=MONTHS[idx];
+  const days=daysIn(y,m);
+  const result=[];
+
+  // Seed continuity: what was the last meal of the previous month?
+  const prevData=monthStore[idx-1];
+  const prevDays=prevData?prevData.days:[];
+  const prevLastId=prevDays.length?prevDays[prevDays.length-1]:null;
+
+  for(let d=0;d<days;d++){
+    const beforeId=d>0?result[d-1]:prevLastId;
+
+    // Build pool of valid meals (no frozen in auto-gen)
+    let pool=allMeals().filter(meal=>{
+      if(meal.alwaysValid)return false;           // frozen = manual only
+      if(meal.id===beforeId)return false;          // no repeat
+      // pasta spacing: check last 5 days including cross-month tail
+      if(meal.c==='pasta'){
+        for(let look=1;look<=5;look++){
+          let checkId=null;
+          if(d-look>=0) checkId=result[d-look];
+          else checkId=prevDays[prevDays.length+(d-look)]??null;
+          if(checkId&&mealById(checkId).c==='pasta')return false;
+        }
+      }
+      // monthly cap
+      if(monthCount(meal.id,result)>=capFor(meal.id))return false;
+      return true;
+    });
+
+    // Fallback 1: relax cap
+    if(!pool.length){
+      pool=allMeals().filter(m=>!m.alwaysValid&&m.id!==beforeId);
+    }
+    // Fallback 2: anything goes except immediate repeat
+    if(!pool.length){
+      pool=allMeals().filter(m=>m.id!==beforeId);
+    }
+    // Fallback 3: truly anything
+    if(!pool.length) pool=allMeals();
+
+    result.push(pool[Math.floor(Math.random()*pool.length)].id);
+  }
+  return result;
+}
+
+// Get or create a month's data
+function getOrGenerate(idx){
+  if(!monthStore[idx]){
+    monthStore[idx]={days:generateMonth(idx),locked:isLocked(idx)};
+    saveStore();
+  }
+  return monthStore[idx];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VALIDITY (for manual swap panel)
+// ─────────────────────────────────────────────────────────────────────────────
+function validForSwap(monthIdx,dayInMonth){
+  const data=monthStore[monthIdx];
+  if(!data)return[];
+  const days=data.days;
+  const beforeId=dayInMonth>0?days[dayInMonth-1]:(monthStore[monthIdx-1]?.days.slice(-1)[0]??null);
+  const afterId=dayInMonth<days.length-1?days[dayInMonth+1]:(monthStore[monthIdx+1]?.days[0]??null);
+
+  return allMeals().filter(m=>{
+    if(m.alwaysValid)return true; // frozen always ok
+    if(m.id===beforeId||m.id===afterId)return false;
+    // pasta spacing
+    if(m.c==='pasta'){
+      for(let look=1;look<=5;look++){
+        let checkId=null;
+        if(dayInMonth-look>=0) checkId=days[dayInMonth-look];
+        else{const pd=monthStore[monthIdx-1]?.days??[];checkId=pd[pd.length+(dayInMonth-look)]??null;}
+        if(checkId&&mealById(checkId).c==='pasta')return false;
+      }
+      for(let look=1;look<=5;look++){
+        let checkId=null;
+        if(dayInMonth+look<days.length) checkId=days[dayInMonth+look];
+        else{const nd=monthStore[monthIdx+1]?.days??[];checkId=nd[dayInMonth+look-days.length]??null;}
+        if(checkId&&mealById(checkId).c==='pasta')return false;
+      }
+    }
+    // cap (exclude current day from count)
+    const countExcludingSelf=monthCount(m.id,days)-(days[dayInMonth]===m.id?1:0);
+    if(cap!==Infinity&&countExcludingSelf>=capFor(m.id))return false;
+    return true;
+
+    function cap(){return capFor(m.id)}
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Simpler validForSwap — inline cap check fix
+// ─────────────────────────────────────────────────────────────────────────────
+function getValidSwaps(monthIdx,dayInMonth){
+  const data=monthStore[monthIdx];
+  if(!data)return[];
+  const days=data.days;
+  const beforeId=dayInMonth>0?days[dayInMonth-1]:(monthStore[monthIdx-1]?.days.slice(-1)[0]??null);
+  const afterId=dayInMonth<days.length-1?days[dayInMonth+1]:(monthStore[monthIdx+1]?.days[0]??null);
+
+  return allMeals().filter(m=>{
+    if(m.alwaysValid)return true;
+    if(m.id===beforeId||m.id===afterId)return false;
+    if(m.c==='pasta'){
+      for(let look=1;look<=5;look++){
+        let cid=null;
+        if(dayInMonth-look>=0)cid=days[dayInMonth-look];
+        else{const pd=monthStore[monthIdx-1]?.days??[];cid=pd[pd.length+(dayInMonth-look)]??null;}
+        if(cid&&mealById(cid).c==='pasta')return false;
+      }
+      for(let look=1;look<=5;look++){
+        let cid=null;
+        if(dayInMonth+look<days.length)cid=days[dayInMonth+look];
+        else{const nd=monthStore[monthIdx+1]?.days??[];cid=nd[dayInMonth+look-days.length]??null;}
+        if(cid&&mealById(cid).c==='pasta')return false;
+      }
+    }
+    const countEx=monthCount(m.id,days)-(days[dayInMonth]===m.id?1:0);
+    if(capFor(m.id)!==Infinity&&countEx>=capFor(m.id))return false;
+    return true;
+  });
+}
+
+function pickRandom(monthIdx,dayInMonth){
+  const curId=monthStore[monthIdx]?.days[dayInMonth];
+  let pool=getValidSwaps(monthIdx,dayInMonth).filter(m=>!m.alwaysValid&&m.id!==curId);
+  if(!pool.length)pool=getValidSwaps(monthIdx,dayInMonth).filter(m=>m.id!==curId);
+  if(!pool.length)pool=getValidSwaps(monthIdx,dayInMonth);
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SNACKBAR
+// ─────────────────────────────────────────────────────────────────────────────
+let snackT;
+function showSnack(msg){
+  const el=document.getElementById('snack');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(snackT);snackT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SWAP POPOVER
+// ─────────────────────────────────────────────────────────────────────────────
+let activeMonth=-1,activeDay=-1;
+const pop=document.getElementById('pop');
+const ov=document.getElementById('ov');
+
+function openPop(monthIdx,dayInMonth,cellEl){
+  activeMonth=monthIdx;activeDay=dayInMonth;
+  const [y,m]=MONTHS[monthIdx];
+  const d=dayInMonth+1;
+  const date=new Date(y,m,d);
+  const data=monthStore[monthIdx];
+  const curId=data.days[dayInMonth];
+  const cur=mealById(curId);
+
+  document.getElementById('popDate').textContent=`${DOWS[date.getDay()]}, ${MNAMES[m]} ${d}`;
+  document.getElementById('popCurrent').textContent=`Currently: ${cur.ico} ${cur.n}`;
+  document.getElementById('frozenBtn').style.display=curId===FROZEN_ID?'none':'flex';
+
+  const valids=getValidSwaps(monthIdx,dayInMonth);
+  const opts=document.getElementById('popOpts');
+  opts.innerHTML='';
+  allMeals().forEach(meal=>{
+    if(meal.id===FROZEN_ID)return;
+    const isVal=valids.some(v=>v.id===meal.id);
+    const isCur=meal.id===curId;
+    const isCustom=customMeals.some(c=>c.id===meal.id);
+    const cnt=monthCount(meal.id,data.days);
+    const cap=capFor(meal.id);
+    const atCap=!isCur&&cap!==Infinity&&(cnt-(isCur?1:0))>=cap;
+    const blocked=!isVal||atCap;
+    const btn=document.createElement('button');
+    btn.className=`pop-opt ${meal.c}${isCur?' cur':''}${blocked?' inv':''}`;
+    const cntBadge=cap===Infinity?'':`<span class="cnt">${cnt}/${cap}</span>`;
+    btn.innerHTML=`${meal.ico} ${meal.n}${isCustom?'<span class="cs">✦</span>':''}${cntBadge}`;
+    btn.title=atCap?`Month limit (${cap}×) reached — adjust in Manage Meals`:(!isVal?'Conflict with nearby meals':'');
+    btn.onclick=()=>{
+      if(blocked)return;
+      monthStore[monthIdx].days[dayInMonth]=meal.id;
+      saveStore();render(curMonth);closePop();
+      showSnack(`${MNAMES[m]} ${d} → ${meal.ico} ${meal.n}`);
+    };
+    opts.appendChild(btn);
+  });
+
+  // Position
+  const r=cellEl.getBoundingClientRect();
+  const pw=292;
+  let left=r.left+window.scrollX;
+  let top=r.bottom+window.scrollY+8;
+  if(left+pw>window.innerWidth-12)left=Math.max(8,window.innerWidth-pw-12);
+  if(top+460>window.scrollY+window.innerHeight)top=Math.max(8,r.top+window.scrollY-470);
+  pop.style.left=left+'px';pop.style.top=top+'px';
+  pop.classList.add('open');ov.classList.add('open');
+}
+
+function closePop(){
+  pop.classList.remove('open');
+  if(!document.getElementById('modalWrap').classList.contains('open'))ov.classList.remove('open');
+  activeMonth=-1;activeDay=-1;
+}
+
+ov.addEventListener('click',()=>{closePop();closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();closeModal()}});
+
+document.getElementById('shuffleBtn').addEventListener('click',()=>{
+  if(activeMonth<0)return;
+  const pick=pickRandom(activeMonth,activeDay);
+  if(!pick)return;
+  const [y,m]=MONTHS[activeMonth];
+  monthStore[activeMonth].days[activeDay]=pick.id;
+  saveStore();render(curMonth);closePop();
+  showSnack(`${MNAMES[m]} ${activeDay+1} → ${pick.ico} ${pick.n}`);
+});
+
+document.getElementById('frozenBtn').addEventListener('click',()=>{
+  if(activeMonth<0)return;
+  const [y,m]=MONTHS[activeMonth];
+  monthStore[activeMonth].days[activeDay]=FROZEN_ID;
+  saveStore();render(curMonth);closePop();
+  showSnack(`${MNAMES[m]} ${activeDay+1} → 🧊 Frozen`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESET
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(!confirm('Clear all generated months and start fresh? This cannot be undone.'))return;
+  monthStore={};saveStore();
+  render(curMonth);
+  showSnack('All months cleared — they will regenerate as you visit them 🔄');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REGENERATE
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('regenBtn').addEventListener('click',()=>{
+  const [,m,label]=MONTHS[curMonth];
+  if(!confirm(`Regenerate ${label}? All manual swaps for this month will be lost.`))return;
+  monthStore[curMonth]={days:generateMonth(curMonth),locked:false};
+  saveStore();render(curMonth);
+  showSnack(`${label} regenerated with current meal pool ✨`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MANAGE MEALS MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+const EMOJIS=["🍝","🍜","🍛","🍲","🥘","🫕","🌮","🌯","🥙","🍕","🍔","🍟","🌭","🥪","🍗","🍖","🥩","🥓","🍳","🥞","🥗","🥡","🍱","🧇","🫔","🌽","🥦","🧄","🥕","🫙","🍤","🦐","🍣","🧀","🥚","🍵","🫒","🥜","🍞","🥐"];
+let pickedEmoji="🍽";
+
+function buildEmojiGrid(){
+  const g=document.getElementById('emojiGrid');g.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const b=document.createElement('button');
+    b.className='emoj'+(e===pickedEmoji?' picked':'');
+    b.textContent=e;b.type='button';
+    b.onclick=()=>{
+      pickedEmoji=e;
+      g.querySelectorAll('.emoj').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+    };
+    g.appendChild(b);
+  });
+}
+
+function makeMealRow(m,isDefault){
+  const row=document.createElement('div');
+  row.className='meal-row'+(isDefault?' default-row':'');
+  const cap=capFor(m.id);
+  const capDisplay=cap===Infinity?'∞':cap;
+  const capSection=m.alwaysValid?'':`
+    <div class="cap-row">
+      <span class="cap-label">Max per month:</span>
+      <div class="cap-ctrl">
+        <button class="cap-btn" data-dir="-1" data-id="${m.id}">−</button>
+        <span class="cap-val" id="capval-${m.id}">${capDisplay}</span>
+        <button class="cap-btn" data-dir="1" data-id="${m.id}">+</button>
+      </div>
+    </div>`;
+  row.innerHTML=`
+    <div class="mr-ico">${m.ico}</div>
+    <div class="mr-info">
+      <div class="mr-name">${m.n}${m.alwaysValid?' <span style="font-size:10px;opacity:.6">(always available)</span>':''}</div>
+      <div><span class="mr-pill ${m.c}">${CAT_LABELS[m.c]||m.c}</span></div>
+      ${capSection}
+    </div>
+    ${!isDefault?`<button class="mr-del" data-id="${m.id}">Remove</button>`:''}`;
+
+  row.querySelectorAll('.cap-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=btn.dataset.id;
+      const cur=capFor(id);
+      const next=btn.dataset.dir==='1'
+        ?(cur===Infinity?Infinity:Math.min(cur+1,10))
+        :(cur<=1?1:cur-1);
+      setCapFor(id,next);
+      const el=document.getElementById('capval-'+id);
+      if(el)el.textContent=next===Infinity?'∞':next;
+      showSnack(`${m.n}: max ${next===Infinity?'unlimited':next+'×'}/month`);
+    };
+  });
+
+  if(!isDefault){
+    const del=row.querySelector('.mr-del');
+    if(del) del.onclick=()=>{
+      if(!confirm(`Remove "${m.n}"?`))return;
+      customMeals=customMeals.filter(x=>x.id!==m.id);
+      saveCustom();refreshModalLists();
+      showSnack(`"${m.n}" removed`);
+    };
+  }
+  return row;
+}
+
+function refreshModalLists(){
+  const sec=document.getElementById('customSec');
+  const list=document.getElementById('customList');
+  if(customMeals.length){
+    sec.style.display='block';
+    document.getElementById('customCount').textContent=`— ${customMeals.length} meal${customMeals.length>1?'s':''}`;
+    list.innerHTML='';
+    customMeals.forEach(m=>list.appendChild(makeMealRow(m,false)));
+  }else{sec.style.display='none'}
+
+  const dl=document.getElementById('defaultList');dl.innerHTML='';
+  DEFAULT_MEALS.forEach(m=>dl.appendChild(makeMealRow(m,true)));
+}
+
+document.getElementById('manageMealsBtn').addEventListener('click',()=>{
+  buildEmojiGrid();refreshModalLists();
+  document.getElementById('modalWrap').classList.add('open');
+  ov.classList.add('open');
+});
+
+function closeModal(){
+  document.getElementById('modalWrap').classList.remove('open');
+  if(!pop.classList.contains('open'))ov.classList.remove('open');
+}
+document.getElementById('modalClose').addEventListener('click',closeModal);
+
+const nameInput=document.getElementById('newName');
+const addBtn=document.getElementById('addBtn');
+nameInput.addEventListener('input',()=>{addBtn.disabled=nameInput.value.trim().length<2});
+addBtn.addEventListener('click',()=>{
+  const name=nameInput.value.trim();if(name.length<2)return;
+  const cat=document.getElementById('newCat').value;
+  const meal={n:name,c:cat,ico:pickedEmoji,id:'c_'+Date.now(),custom:true};
+  customMeals.push(meal);saveCustom();refreshModalLists();
+  nameInput.value='';addBtn.disabled=true;
+  showSnack(`"${name}" added ✦ — future months will include it`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────────────────────
+const todayD=new Date();
+function isToday(y,m,d){return todayD.getFullYear()===y&&todayD.getMonth()===m&&todayD.getDate()===d}
+
+let curMonth=0;
+
+function render(idx){
+  const[y,m,label]=MONTHS[idx];
+  const data=getOrGenerate(idx); // generate if needed
+  // Lock it if it should be locked
+  if(isLocked(idx)&&!data.locked){data.locked=true;saveStore();}
+
+  const days=daysIn(y,m);
+  const first=new Date(y,m,1).getDay();
+
+  document.getElementById('mName').textContent=label;
+  document.getElementById('mMeta').textContent=`${days} dinners this month`;
+  document.getElementById('prev').disabled=idx===0;
+  document.getElementById('next').disabled=idx===MONTHS.length-1;
+
+  // Badge + regen button
+  const badge=document.getElementById('mBadge');
+  const regen=document.getElementById('regenBtn');
+  const ci=currentMonthIdx();
+  if(idx<ci){
+    badge.style.display='inline-flex';badge.className='badge badge-locked';badge.textContent='🔒 Past month';
+    regen.style.display='none';
+  }else if(idx===ci){
+    badge.style.display='inline-flex';badge.className='badge badge-locked';badge.textContent='📅 Current month';
+    regen.style.display='none';
+  }else{
+    badge.style.display='inline-flex';badge.className='badge badge-future';badge.textContent='✨ Future';
+    regen.style.display='inline-flex';
+  }
+
+  // Progress dots
+  const dots=document.getElementById('progDots');dots.innerHTML='';
+  MONTHS.forEach((_,i)=>{
+    const dot=document.createElement('div');
+    dot.className='prog-dot'+(i<idx?' done':i===idx?' active':'');
+    dots.appendChild(dot);
+  });
+  document.getElementById('progText').textContent=`Month ${idx+1} of 12`;
+
+  // Calendar cells
+  const grid=document.getElementById('grid');grid.innerHTML='';
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';grid.appendChild(e)}
+
+  for(let d=0;d<days;d++){
+    const meal=mealById(data.days[d]);
+    const dow=new Date(y,m,d+1).getDay();
+    const isCustom=customMeals.some(c=>c.id===meal.id);
+    const cell=document.createElement('div');
+    cell.className=`day${dow===0||dow===6?' weekend':''}${isToday(y,m,d+1)?' today':''}`;
+    cell.innerHTML=`
+      <div class="d-num">${d+1}</div>
+      <div class="d-dow">${DOWS[dow]}</div>
+      <div class="d-spacer"></div>
+      <button class="meal-pill ${meal.c}">
+        <span class="pill-ico">${meal.ico}</span>
+        <span class="pill-lbl">${meal.n}</span>
+        ${isCustom?'<span class="custom-badge">✦</span>':''}
+      </button>`;
+    cell.querySelector('.meal-pill').addEventListener('click',ev=>{
+      ev.stopPropagation();openPop(idx,d,cell);
+    });
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('prev').addEventListener('click',()=>{if(curMonth>0){curMonth--;render(curMonth)}});
+document.getElementById('next').addEventListener('click',()=>{if(curMonth<MONTHS.length-1){curMonth++;render(curMonth)}});
+
+// Start on current month if in range, else first
+const si=currentMonthIdx();
+curMonth=si>=0?si:0;
+render(curMonth);
+</script>
+</body>
+</html>
