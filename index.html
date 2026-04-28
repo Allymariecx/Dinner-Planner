@@ -51,9 +51,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .prog-dot.active{background:var(--accent);transform:scale(1.3)}
 .prog-text{font-size:11px;color:var(--muted)}
 
-.cal-hd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
-.cal-hd span{text-align:center;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-wrap{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-hd-cell{text-align:center;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
 
 .day{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 10px 12px;min-height:96px;display:flex;flex-direction:column;transition:box-shadow .2s,transform .15s,border-color .15s}
 .day:not(.empty):hover{box-shadow:0 6px 24px rgba(0,0,0,0.11);transform:translateY(-2px);border-color:#afc2a9}
@@ -234,9 +233,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
   .prog-text{font-size:10px}
 
   /* Calendar — 7 columns stays but cells shrink */
-  .cal-hd span{font-size:8px;letter-spacing:0}
-  .cal-grid{gap:3px}
-  .cal-hd{gap:3px}
+  .cal-wrap{gap:3px}
+  .cal-hd-cell{font-size:8px;letter-spacing:0}
   .day{min-height:60px;padding:5px 4px 6px;border-radius:9px}
   .d-num{font-size:12px}
   .d-dow{display:none}
@@ -326,10 +324,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
     <div class="prog-text" id="progText"></div>
   </div>
 
-  <div class="cal-hd">
-    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+  <div class="cal-wrap" id="grid">
+    <div class="cal-hd-cell">Sun</div><div class="cal-hd-cell">Mon</div><div class="cal-hd-cell">Tue</div><div class="cal-hd-cell">Wed</div><div class="cal-hd-cell">Thu</div><div class="cal-hd-cell">Fri</div><div class="cal-hd-cell">Sat</div>
   </div>
-  <div class="cal-grid" id="grid"></div>
 
   <div class="legend">
     <span class="leg-hd">Key</span>
@@ -1007,7 +1004,9 @@ function render(idx){
   document.getElementById('progText').textContent=`Month ${idx+1} of 12`;
 
   // Calendar cells
-  const grid=document.getElementById('grid');grid.innerHTML='';
+  const grid=document.getElementById('grid');
+  // Remove everything except the 7 header cells
+  while(grid.children.length>7)grid.removeChild(grid.lastChild);
   for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';grid.appendChild(e)}
 
   for(let d=0;d<days;d++){
