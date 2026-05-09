@@ -1,0 +1,33 @@
+{
+  "name": "fooendar",
+  "short_name": "fooendar",
+  "description": "A smart dinner planner that generates your monthly meal calendar and keeps your recipes in one place.",
+  "start_url": "/dinner-planner-2026-2027.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#364b30",
+  "background_color": "#dde4d8",
+  "lang": "en-US",
+  "categories": ["food", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "fooendar192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "fooendar512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "fooendar512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

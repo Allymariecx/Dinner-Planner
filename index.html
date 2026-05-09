@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dinner Planner 2026–2027</title>
+<meta name="theme-color" content="#364b30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="fooendar">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="fooendar180.png">
+<title>fooendar</title>
 <style>
 :root{
   --bg:#dde4d8;
@@ -1437,6 +1443,12 @@ document.getElementById('bkApply').addEventListener('click',()=>{
   showSnack('Restored! Reloading…');
   setTimeout(()=>location.reload(),900);
 });
+// ── Service worker registration ───────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
 
 </script>
 </body>
