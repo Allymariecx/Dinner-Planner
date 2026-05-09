@@ -864,20 +864,22 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();closeMod
 
 document.getElementById('shuffleBtn').addEventListener('click',()=>{
   if(activeMonth<0)return;
-  const pick=pickRandom(activeMonth,activeDay);
+  const snapMonth=activeMonth,snapDay=activeDay;
+  const pick=pickRandom(snapMonth,snapDay);
   if(!pick)return;
-  const [y,m]=MONTHS[activeMonth];
-  monthStore[activeMonth].days[activeDay]=pick.id;
+  const [y,m]=MONTHS[snapMonth];
+  monthStore[snapMonth].days[snapDay]=pick.id;
   saveStore();render(curMonth);closePop();
-  showSnack(`${MNAMES[m]} ${activeDay+1} → ${pick.ico} ${pick.n}`);
+  showSnack(`${MNAMES[m]} ${snapDay+1} → ${pick.ico} ${pick.n}`);
 });
 
 document.getElementById('frozenBtn').addEventListener('click',()=>{
   if(activeMonth<0)return;
-  const [y,m]=MONTHS[activeMonth];
-  monthStore[activeMonth].days[activeDay]=FROZEN_ID;
+  const snapMonth=activeMonth,snapDay=activeDay;
+  const [y,m]=MONTHS[snapMonth];
+  monthStore[snapMonth].days[snapDay]=FROZEN_ID;
   saveStore();render(curMonth);closePop();
-  showSnack(`${MNAMES[m]} ${activeDay+1} → 🧊 Frozen`);
+  showSnack(`${MNAMES[m]} ${snapDay+1} → 🧊 Frozen`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
