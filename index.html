@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="fooendar">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="fooendar180.png">
+<link rel="manifest" href="/Dinner-Planner/manifest.json">
+<link rel="apple-touch-icon" href="/Dinner-Planner/fooendar180.png">
 <title>fooendar</title>
 <style>
 :root{
@@ -1446,7 +1446,7 @@ document.getElementById('bkApply').addEventListener('click',()=>{
 // ── Service worker registration ───────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/Dinner-Planner/sw.js').catch(()=>{});
   });
 }
 

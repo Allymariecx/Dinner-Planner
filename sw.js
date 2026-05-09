@@ -2,11 +2,11 @@
 // Bump CACHE_VERSION when you deploy a new version of the HTML
 const CACHE_VERSION = 'fooendar-v1';
 const ASSETS = [
-  '/dinner-planner-2026-2027.html',
-  '/manifest.json',
-  '/fooendar192.png',
-  '/fooendar512.png',
-  '/fooendar180.png',
+  '/Dinner-Planner/index.html',
+  '/Dinner-Planner/manifest.json',
+  '/Dinner-Planner/fooendar192.png',
+  '/Dinner-Planner/fooendar512.png',
+  '/Dinner-Planner/fooendar180.png',
 ];
 
 // Install: cache all assets
