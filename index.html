@@ -59,6 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .day.empty{background:none;border-color:transparent;pointer-events:none}
 .day.weekend{background:var(--weekend)}
 .day.today{border-color:#8ab07e;box-shadow:0 0 0 2px #c6dfc1}
+.day.past{opacity:.72}
+.day.past .d-num{color:var(--muted)}
 .d-num{font-size:16px;font-weight:700;color:var(--text);line-height:1}
 .d-dow{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
 .d-spacer{flex:1}
@@ -208,6 +210,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .rbe-delete{background:none;border:1px solid #e0b8b0;border-radius:10px;padding:10px;font-size:13px;color:#b03020;cursor:pointer;width:100%;font-weight:600}
 .rbe-delete:hover{background:#fff0ee}
 
+/* ── Backup & Restore ── */
+.bk-drop{width:100%;border:1.5px dashed var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg)}
+.bk-drop:hover,.bk-drop.dragover{border-color:var(--accent);background:var(--card)}
+.bk-drop-icon{font-size:28px;margin-bottom:6px}
+.bk-drop-text{font-size:13px;color:var(--text);font-weight:500}
+.bk-drop-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.bk-confirm{background:#e8f4e8;border:1px solid #b8d8b8;border-radius:10px;padding:12px 14px;font-size:12px;color:#2d5a27;display:none;margin-top:12px;line-height:1.6}
+.bk-confirm.show{display:block}
+.bk-confirm strong{display:block;margin-bottom:6px;font-size:13px}
+.bk-actions{display:flex;gap:8px;margin-top:12px}
+.bk-apply{flex:1;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer}
+.bk-apply:hover{background:#4a6642}
+.bk-cancel-r{background:none;border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text)}
+.bk-cancel-r:hover{background:var(--bg)}
+.bk-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:11px}
+.bk-divider::before,.bk-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.bk-note{font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+
 @media print{
   .page-hd .hd-actions,.arr,.pop,.ov,.snack,.prog-row,.modal-wrap,.badge-regen{display:none!important}
   .day:hover{box-shadow:none!important;transform:none!important}
@@ -299,6 +319,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
       <div class="hd-sub">May 2026 – April 2027 &nbsp;·&nbsp; Months generate fresh from your meal pool</div>
     </div>
     <div class="hd-actions">
+      <button class="hd-btn" id="backupBtn">💾 Backup</button>
       <button class="hd-btn" id="recipeBookBtn">📖 Recipe Book</button>
       <button class="hd-btn hi" id="manageMealsBtn">✦ Manage Meals</button>
       <button class="hd-btn" onclick="window.print()">🖨 Print / PDF</button>
@@ -345,6 +366,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
   <div class="pop-eyebrow">Change dinner</div>
   <div class="pop-date" id="popDate"></div>
   <div class="pop-current" id="popCurrent"></div>
+  <div id="popPastNote" style="display:none;font-size:11px;background:#e8f4e8;color:#2d5a27;border:1px solid #b8d8b8;border-radius:8px;padding:7px 10px;margin-bottom:10px">📅 Past day — all meals available, no restrictions</div>
   <button class="pop-shuffle" id="shuffleBtn">🔀 Auto-fill for me</button>
   <button class="frozen-btn" id="frozenBtn">🧊 Frozen — quick night!</button>
   <div class="pop-divider">Or pick one</div>
@@ -376,7 +398,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
             <option value="meaty">Hearty (green)</option>
             <option value="handheld">Sandwiches &amp; burgers (coral)</option>
             <option value="taco">Tacos / Mexican (amber)</option>
-            <option value="pasta">Pasta (purple) — 5-day spacing applies</option>
+            <option value="pasta">Pasta (purple) — one per calendar week</option>
           </select>
         </div>
         <div class="fl">
@@ -471,6 +493,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
       </div>
       <button class="rbe-save" id="rbeSave">Save recipe</button>
       <button class="rbe-delete" id="rbeDelete" style="display:none">Remove recipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup & Restore modal -->
+<div class="modal-wrap" id="bkWrap">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">💾 Backup & Restore</div>
+        <div class="modal-sub">Save your planner data to a file or restore from a previous backup.</div>
+      </div>
+      <button class="modal-close" id="bkClose">✕</button>
+    </div>
+
+    <!-- Download -->
+    <div class="msec">
+      <div class="msec-title">Download backup</div>
+      <button class="fadd" id="bkDownload">⬇ Download backup file</button>
+      <p class="bk-note" style="margin-top:10px">Saves your full calendar, custom meals, caps, disabled meals, and recipes into a single <code>.json</code> file. Store it anywhere — Google Drive, iCloud, a USB drive.</p>
+    </div>
+
+    <div class="bk-divider">or</div>
+
+    <!-- Restore -->
+    <div class="msec" style="margin-bottom:0">
+      <div class="msec-title">Restore from file</div>
+      <div class="bk-drop" id="bkDrop">
+        <div class="bk-drop-icon">📂</div>
+        <div class="bk-drop-text">Click to choose a backup file</div>
+        <div class="bk-drop-sub">or drag and drop it here</div>
+      </div>
+      <input type="file" id="bkFileInput" accept=".json,application/json" style="display:none">
+      <div class="bk-confirm" id="bkConfirm">
+        <strong>⚠️ Ready to restore</strong>
+        <span id="bkConfirmText"></span>
+        <div class="bk-actions">
+          <button class="bk-cancel-r" id="bkCancelRestore">Cancel</button>
+          <button class="bk-apply" id="bkApply">Restore &amp; reload</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -571,6 +634,67 @@ function monthCount(mealId,monthDays){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PASTA: one per Sun–Sat calendar week (not a rolling 5-day window)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// During generation: only look at already-placed days earlier in the same week
+function pastaInWeekGen(d, y, m, result, prevDays){
+  const date=new Date(y,m,d+1);
+  const dow=date.getDay(); // 0=Sun
+  for(let wd=0;wd<dow;wd++){
+    const checkDay=d+(wd-dow); // negative offset back to earlier in week
+    let cid=null;
+    if(checkDay>=0) cid=result[checkDay]??null;
+    else if(prevDays.length) cid=prevDays[prevDays.length+checkDay]??null;
+    if(cid&&mealById(cid).c==='pasta') return true;
+  }
+  return false;
+}
+
+// For swap panel: check the full week in all directions using stored data
+function pastaInWeekSwap(dayInMonth, monthIdx, days){
+  const [y,m]=MONTHS[monthIdx];
+  const date=new Date(y,m,dayInMonth+1);
+  const dow=date.getDay();
+  for(let wd=0;wd<=6;wd++){
+    if(wd===dow) continue;
+    const offset=wd-dow;
+    const checkDay=dayInMonth+offset;
+    let cid=null;
+    if(checkDay>=0&&checkDay<days.length) cid=days[checkDay];
+    else if(checkDay<0){const pd=monthStore[monthIdx-1]?.days??[];cid=pd[pd.length+checkDay]??null;}
+    else{const nd=monthStore[monthIdx+1]?.days??[];cid=nd[checkDay-days.length]??null;}
+    if(cid&&mealById(cid).c==='pasta') return true;
+  }
+  return false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAST DAY CHECK — days before today have no swap restrictions
+// ─────────────────────────────────────────────────────────────────────────────
+function isDayPast(monthIdx, dayInMonth){
+  const ci=currentMonthIdx();
+  if(ci<0) return false;
+  if(monthIdx<ci) return true;
+  if(monthIdx===ci) return (dayInMonth+1)<todayD.getDate();
+  return false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STORAGE MIGRATION — runs once at startup, safe to re-run
+// ─────────────────────────────────────────────────────────────────────────────
+function migrateStorage(){
+  // v1 keys are still current — nothing to rename
+  // Validate monthStore entries: ensure each is {days:[], locked:bool}
+  let dirty=false;
+  Object.keys(monthStore).forEach(k=>{
+    const v=monthStore[k];
+    if(!v||!Array.isArray(v.days)){delete monthStore[k];dirty=true;}
+  });
+  if(dirty) saveStore();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GENERATION
 // ─────────────────────────────────────────────────────────────────────────────
 function generateMonth(idx){
@@ -590,15 +714,8 @@ function generateMonth(idx){
     let pool=activeMeals().filter(meal=>{
       if(meal.alwaysValid)return false;           // frozen = manual only
       if(meal.id===beforeId)return false;          // no repeat
-      // pasta spacing: check last 5 days including cross-month tail
-      if(meal.c==='pasta'){
-        for(let look=1;look<=5;look++){
-          let checkId=null;
-          if(d-look>=0) checkId=result[d-look];
-          else checkId=prevDays[prevDays.length+(d-look)]??null;
-          if(checkId&&mealById(checkId).c==='pasta')return false;
-        }
-      }
+      // pasta: only one per Sun–Sat calendar week
+      if(meal.c==='pasta'&&pastaInWeekGen(d,y,m,result,prevDays))return false;
       // monthly cap
       if(monthCount(meal.id,result)>=capFor(meal.id))return false;
       return true;
@@ -632,43 +749,6 @@ function getOrGenerate(idx){
 // ─────────────────────────────────────────────────────────────────────────────
 // VALIDITY (for manual swap panel)
 // ─────────────────────────────────────────────────────────────────────────────
-function validForSwap(monthIdx,dayInMonth){
-  const data=monthStore[monthIdx];
-  if(!data)return[];
-  const days=data.days;
-  const beforeId=dayInMonth>0?days[dayInMonth-1]:(monthStore[monthIdx-1]?.days.slice(-1)[0]??null);
-  const afterId=dayInMonth<days.length-1?days[dayInMonth+1]:(monthStore[monthIdx+1]?.days[0]??null);
-
-  return activeMeals().filter(m=>{
-    if(m.alwaysValid)return true; // frozen always ok
-    if(m.id===beforeId||m.id===afterId)return false;
-    // pasta spacing
-    if(m.c==='pasta'){
-      for(let look=1;look<=5;look++){
-        let checkId=null;
-        if(dayInMonth-look>=0) checkId=days[dayInMonth-look];
-        else{const pd=monthStore[monthIdx-1]?.days??[];checkId=pd[pd.length+(dayInMonth-look)]??null;}
-        if(checkId&&mealById(checkId).c==='pasta')return false;
-      }
-      for(let look=1;look<=5;look++){
-        let checkId=null;
-        if(dayInMonth+look<days.length) checkId=days[dayInMonth+look];
-        else{const nd=monthStore[monthIdx+1]?.days??[];checkId=nd[dayInMonth+look-days.length]??null;}
-        if(checkId&&mealById(checkId).c==='pasta')return false;
-      }
-    }
-    // cap (exclude current day from count)
-    const countExcludingSelf=monthCount(m.id,days)-(days[dayInMonth]===m.id?1:0);
-    if(cap!==Infinity&&countExcludingSelf>=capFor(m.id))return false;
-    return true;
-
-    function cap(){return capFor(m.id)}
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Simpler validForSwap — inline cap check fix
-// ─────────────────────────────────────────────────────────────────────────────
 function getValidSwaps(monthIdx,dayInMonth){
   const data=monthStore[monthIdx];
   if(!data)return[];
@@ -679,20 +759,9 @@ function getValidSwaps(monthIdx,dayInMonth){
   return activeMeals().filter(m=>{
     if(m.alwaysValid)return true;
     if(m.id===beforeId||m.id===afterId)return false;
-    if(m.c==='pasta'){
-      for(let look=1;look<=5;look++){
-        let cid=null;
-        if(dayInMonth-look>=0)cid=days[dayInMonth-look];
-        else{const pd=monthStore[monthIdx-1]?.days??[];cid=pd[pd.length+(dayInMonth-look)]??null;}
-        if(cid&&mealById(cid).c==='pasta')return false;
-      }
-      for(let look=1;look<=5;look++){
-        let cid=null;
-        if(dayInMonth+look<days.length)cid=days[dayInMonth+look];
-        else{const nd=monthStore[monthIdx+1]?.days??[];cid=nd[dayInMonth+look-days.length]??null;}
-        if(cid&&mealById(cid).c==='pasta')return false;
-      }
-    }
+    // pasta: one per Sun–Sat week
+    if(m.c==='pasta'&&m.id!==days[dayInMonth]&&pastaInWeekSwap(dayInMonth,monthIdx,days))return false;
+    // monthly cap (exclude the day being replaced from the count)
     const countEx=monthCount(m.id,days)-(days[dayInMonth]===m.id?1:0);
     if(capFor(m.id)!==Infinity&&countEx>=capFor(m.id))return false;
     return true;
@@ -737,23 +806,29 @@ function openPop(monthIdx,dayInMonth,cellEl){
   document.getElementById('popCurrent').textContent=`Currently: ${cur.ico} ${cur.n}`;
   document.getElementById('frozenBtn').style.display=curId===FROZEN_ID?'none':'flex';
 
-  const valids=getValidSwaps(monthIdx,dayInMonth);
+  // Past days: no restrictions — show everything including disabled meals
+  const past=isDayPast(monthIdx,dayInMonth);
+  document.getElementById('popPastNote').style.display=past?'block':'none';
+  document.getElementById('shuffleBtn').style.display=past?'none':'flex';
+
+  const valids=past?null:getValidSwaps(monthIdx,dayInMonth);
+  const mealPool=past?allMeals():activeMeals();
   const opts=document.getElementById('popOpts');
   opts.innerHTML='';
-  activeMeals().forEach(meal=>{
+  mealPool.forEach(meal=>{
     if(meal.id===FROZEN_ID)return;
-    const isVal=valids.some(v=>v.id===meal.id);
     const isCur=meal.id===curId;
     const isCustom=customMeals.some(c=>c.id===meal.id);
+    const isVal=past?true:valids.some(v=>v.id===meal.id);
     const cnt=monthCount(meal.id,data.days);
     const cap=capFor(meal.id);
-    const atCap=!isCur&&cap!==Infinity&&(cnt-(isCur?1:0))>=cap;
+    const atCap=!past&&!isCur&&cap!==Infinity&&(monthCount(meal.id,data.days)-(isCur?1:0))>=cap;
     const blocked=!isVal||atCap;
     const btn=document.createElement('button');
     btn.className=`pop-opt ${meal.c}${isCur?' cur':''}${blocked?' inv':''}`;
-    const cntBadge=cap===Infinity?'':`<span class="cnt">${cnt}/${cap}</span>`;
+    const cntBadge=past||cap===Infinity?'':`<span class="cnt">${cnt}/${cap}</span>`;
     btn.innerHTML=`${meal.ico} ${meal.n}${isCustom?'<span class="cs">✦</span>':''}${cntBadge}`;
-    btn.title=atCap?`Month limit (${cap}×) reached — adjust in Manage Meals`:(!isVal?'Conflict with nearby meals':'');
+    btn.title=!past&&atCap?`Month limit (${cap}×) reached`:(!past&&!isVal?'Conflict with nearby meals':'');
     btn.onclick=()=>{
       if(blocked)return;
       monthStore[monthIdx].days[dayInMonth]=meal.id;
@@ -1014,7 +1089,8 @@ function render(idx){
     const dow=new Date(y,m,d+1).getDay();
     const isCustom=customMeals.some(c=>c.id===meal.id);
     const cell=document.createElement('div');
-    cell.className=`day${dow===0||dow===6?' weekend':''}${isToday(y,m,d+1)?' today':''}`;
+    const isPast=isDayPast(idx,d);
+    cell.className=`day${dow===0||dow===6?' weekend':''}${isToday(y,m,d+1)?' today':''}${isPast?' past':''}`;
     cell.innerHTML=`
       <div class="d-num">${d+1}</div>
       <div class="d-dow">${DOWS[dow]}</div>
@@ -1033,6 +1109,9 @@ function render(idx){
 
 document.getElementById('prev').addEventListener('click',()=>{if(curMonth>0){curMonth--;render(curMonth)}});
 document.getElementById('next').addEventListener('click',()=>{if(curMonth<MONTHS.length-1){curMonth++;render(curMonth)}});
+
+// ── startup ───────────────────────────────────────────────────────────────────
+migrateStorage();
 
 // Start on current month if in range, else first
 const si=currentMonthIdx();
@@ -1242,6 +1321,120 @@ document.getElementById('rbeDelete').addEventListener('click',()=>{
 });
 
 document.getElementById('rbeClose').addEventListener('click',()=>rbeWrap.classList.remove('open'));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BACKUP & RESTORE
+// ─────────────────────────────────────────────────────────────────────────────
+const ALL_KEYS=[STORE_KEY,CUSTOM_KEY,CAPS_KEY,DISABLED_KEY,RECIPES_KEY];
+const bkWrap=document.getElementById('bkWrap');
+let pendingRestore=null;
+
+document.getElementById('backupBtn').addEventListener('click',()=>{
+  bkWrap.classList.add('open');
+  ov.classList.add('open');
+  // reset restore state
+  document.getElementById('bkConfirm').classList.remove('show');
+  pendingRestore=null;
+});
+document.getElementById('bkClose').addEventListener('click',closeBk);
+function closeBk(){
+  bkWrap.classList.remove('open');
+  if(!pop.classList.contains('open')&&
+     !document.getElementById('modalWrap').classList.contains('open')&&
+     !document.getElementById('rbWrap').classList.contains('open'))
+    ov.classList.remove('open');
+  pendingRestore=null;
+  document.getElementById('bkConfirm').classList.remove('show');
+}
+
+// ── Download ──────────────────────────────────────────────────────────────────
+document.getElementById('bkDownload').addEventListener('click',()=>{
+  const backup={
+    _version:1,
+    _exported:new Date().toISOString(),
+    _label:'Dinner Planner 2026–2027 backup'
+  };
+  ALL_KEYS.forEach(k=>{
+    try{const v=localStorage.getItem(k);if(v)backup[k]=JSON.parse(v)}catch(e){}
+  });
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  const date=new Date();
+  const stamp=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  a.href=URL.createObjectURL(blob);
+  a.download=`dinner-planner-backup-${stamp}.json`;
+  a.click();
+  showSnack('Backup downloaded 💾');
+});
+
+// ── File picker & drag-drop ───────────────────────────────────────────────────
+const bkDrop=document.getElementById('bkDrop');
+const bkFileInput=document.getElementById('bkFileInput');
+
+bkDrop.addEventListener('click',()=>bkFileInput.click());
+
+bkDrop.addEventListener('dragover',e=>{e.preventDefault();bkDrop.classList.add('dragover')});
+bkDrop.addEventListener('dragleave',()=>bkDrop.classList.remove('dragover'));
+bkDrop.addEventListener('drop',e=>{
+  e.preventDefault();bkDrop.classList.remove('dragover');
+  const file=e.dataTransfer.files[0];
+  if(file)readBackupFile(file);
+});
+bkFileInput.addEventListener('change',e=>{
+  if(e.target.files[0])readBackupFile(e.target.files[0]);
+  e.target.value='';
+});
+
+function readBackupFile(file){
+  if(!file.name.endsWith('.json')&&file.type!=='application/json'){
+    showSnack('Please choose a .json backup file');return;
+  }
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data._version||!data._exported){
+        showSnack('That file doesn\'t look like a valid backup');return;
+      }
+      // Count what's inside
+      const foundKeys=ALL_KEYS.filter(k=>data[k]!==undefined);
+      const exported=new Date(data._exported).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+      let summary='';
+      if(data[STORE_KEY]){
+        const genCount=Object.keys(data[STORE_KEY]).length;
+        summary+=`${genCount} month${genCount!==1?'s':''} of calendar data. `;
+      }
+      if(data[CUSTOM_KEY]?.length) summary+=`${data[CUSTOM_KEY].length} custom meal${data[CUSTOM_KEY].length!==1?'s':''} . `;
+      if(data[RECIPES_KEY]&&Object.keys(data[RECIPES_KEY]).length){
+        const rc=Object.keys(data[RECIPES_KEY]).length;
+        summary+=`${rc} recipe${rc!==1?'s':''}.`;
+      }
+      pendingRestore=data;
+      const confirmEl=document.getElementById('bkConfirm');
+      document.getElementById('bkConfirmText').textContent=
+        `Backed up ${exported}. Contains: ${summary||'planner settings.'} This will overwrite your current data.`;
+      confirmEl.classList.add('show');
+    }catch(e){showSnack('Could not read that file — is it a valid backup?')}
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('bkCancelRestore').addEventListener('click',()=>{
+  pendingRestore=null;
+  document.getElementById('bkConfirm').classList.remove('show');
+});
+
+document.getElementById('bkApply').addEventListener('click',()=>{
+  if(!pendingRestore)return;
+  ALL_KEYS.forEach(k=>{
+    try{
+      if(pendingRestore[k]!==undefined)
+        localStorage.setItem(k,JSON.stringify(pendingRestore[k]));
+    }catch(e){}
+  });
+  showSnack('Restored! Reloading…');
+  setTimeout(()=>location.reload(),900);
+});
 
 </script>
 </body>
