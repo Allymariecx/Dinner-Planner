@@ -641,39 +641,57 @@ function monthCount(mealId,monthDays){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PASTA: one per Sun–Sat calendar week (not a rolling 5-day window)
+// WEEKLY CAPS — one per Sun–Sat calendar week, configurable per meal
 // ─────────────────────────────────────────────────────────────────────────────
+const WEEKLY_CAPS_KEY='dpWeeklyCaps_v1';
+let weeklyCaps={};
+try{const s=localStorage.getItem(WEEKLY_CAPS_KEY);weeklyCaps=s?JSON.parse(s):{}}catch(e){}
+function saveWeeklyCaps(){try{localStorage.setItem(WEEKLY_CAPS_KEY,JSON.stringify(weeklyCaps))}catch(e){}}
 
-// During generation: only look at already-placed days earlier in the same week
-function pastaInWeekGen(d, y, m, result, prevDays){
+function weeklyCapFor(id){
+  if(id===FROZEN_ID)return Infinity;
+  if(weeklyCaps[id]!==undefined)return weeklyCaps[id];
+  // Pasta defaults to 1/week to preserve previous behaviour
+  const meal=mealById(id);
+  if(meal&&meal.c==='pasta')return 1;
+  return Infinity;
+}
+function setWeeklyCapFor(id,v){weeklyCaps[id]=v;saveWeeklyCaps();}
+
+// Count occurrences of a meal in the same Sun–Sat week during generation
+// (only looks at already-placed days earlier in the week)
+function weekCountGen(mealId, d, y, m, result, prevDays){
   const date=new Date(y,m,d+1);
-  const dow=date.getDay(); // 0=Sun
+  const dow=date.getDay();
+  let count=0;
   for(let wd=0;wd<dow;wd++){
-    const checkDay=d+(wd-dow); // negative offset back to earlier in week
+    const checkDay=d+(wd-dow);
     let cid=null;
-    if(checkDay>=0) cid=result[checkDay]??null;
-    else if(prevDays.length) cid=prevDays[prevDays.length+checkDay]??null;
-    if(cid&&mealById(cid).c==='pasta') return true;
+    if(checkDay>=0)cid=result[checkDay]??null;
+    else if(prevDays.length)cid=prevDays[prevDays.length+checkDay]??null;
+    if(cid===mealId)count++;
   }
-  return false;
+  return count;
 }
 
-// For swap panel: check the full week in all directions using stored data
-function pastaInWeekSwap(dayInMonth, monthIdx, days){
+// Count occurrences of a meal in the same Sun–Sat week for swap panel
+// (looks at all days in the week including future, excludes the day being swapped)
+function weekCountSwap(mealId, dayInMonth, monthIdx, days){
   const [y,m]=MONTHS[monthIdx];
   const date=new Date(y,m,dayInMonth+1);
   const dow=date.getDay();
+  let count=0;
   for(let wd=0;wd<=6;wd++){
-    if(wd===dow) continue;
     const offset=wd-dow;
     const checkDay=dayInMonth+offset;
+    if(checkDay===dayInMonth)continue; // skip the day being evaluated
     let cid=null;
-    if(checkDay>=0&&checkDay<days.length) cid=days[checkDay];
+    if(checkDay>=0&&checkDay<days.length)cid=days[checkDay];
     else if(checkDay<0){const pd=monthStore[monthIdx-1]?.days??[];cid=pd[pd.length+checkDay]??null;}
     else{const nd=monthStore[monthIdx+1]?.days??[];cid=nd[checkDay-days.length]??null;}
-    if(cid&&mealById(cid).c==='pasta') return true;
+    if(cid===mealId)count++;
   }
-  return false;
+  return count;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -721,8 +739,9 @@ function generateMonth(idx){
     let pool=activeMeals().filter(meal=>{
       if(meal.alwaysValid)return false;           // frozen = manual only
       if(meal.id===beforeId)return false;          // no repeat
-      // pasta: only one per Sun–Sat calendar week
-      if(meal.c==='pasta'&&pastaInWeekGen(d,y,m,result,prevDays))return false;
+      // weekly cap: check how many times this meal already appears earlier in the same Sun–Sat week
+      const wCap=weeklyCapFor(meal.id);
+      if(wCap!==Infinity&&weekCountGen(meal.id,d,y,m,result,prevDays)>=wCap)return false;
       // monthly cap
       if(monthCount(meal.id,result)>=capFor(meal.id))return false;
       return true;
@@ -766,8 +785,10 @@ function getValidSwaps(monthIdx,dayInMonth){
   return activeMeals().filter(m=>{
     if(m.alwaysValid)return true;
     if(m.id===beforeId||m.id===afterId)return false;
-    // pasta: one per Sun–Sat week
-    if(m.c==='pasta'&&m.id!==days[dayInMonth]&&pastaInWeekSwap(dayInMonth,monthIdx,days))return false;
+    // weekly cap
+    const wCap=weeklyCapFor(m.id);
+    const wCount=weekCountSwap(m.id,dayInMonth,monthIdx,days);
+    if(wCap!==Infinity&&wCount>=wCap)return false;
     // monthly cap (exclude the day being replaced from the count)
     const countEx=monthCount(m.id,days)-(days[dayInMonth]===m.id?1:0);
     if(capFor(m.id)!==Infinity&&countEx>=capFor(m.id))return false;
@@ -829,13 +850,17 @@ function openPop(monthIdx,dayInMonth,cellEl){
     const isVal=past?true:valids.some(v=>v.id===meal.id);
     const cnt=monthCount(meal.id,data.days);
     const cap=capFor(meal.id);
-    const atCap=!past&&!isCur&&cap!==Infinity&&(monthCount(meal.id,data.days)-(isCur?1:0))>=cap;
-    const blocked=!isVal||atCap;
+    const wCnt=past?0:weekCountSwap(meal.id,dayInMonth,monthIdx,data.days);
+    const wCap=past?Infinity:weeklyCapFor(meal.id);
+    const atMonthlyCap=!past&&!isCur&&cap!==Infinity&&(cnt-(isCur?1:0))>=cap;
+    const atWeeklyCap=!past&&!isCur&&wCap!==Infinity&&wCnt>=wCap;
+    const blocked=!isVal||atMonthlyCap||atWeeklyCap;
     const btn=document.createElement('button');
     btn.className=`pop-opt ${meal.c}${isCur?' cur':''}${blocked?' inv':''}`;
-    const cntBadge=past||cap===Infinity?'':`<span class="cnt">${cnt}/${cap}</span>`;
-    btn.innerHTML=`${meal.ico} ${meal.n}${isCustom?'<span class="cs">✦</span>':''}${cntBadge}`;
-    btn.title=!past&&atCap?`Month limit (${cap}×) reached`:(!past&&!isVal?'Conflict with nearby meals':'');
+    const mBadge=past||cap===Infinity?'':`<span class="cnt">${cnt}/${cap}mo</span>`;
+    const wBadge=past||wCap===Infinity?'':`<span class="cnt">${wCnt}/${wCap}wk</span>`;
+    btn.innerHTML=`${meal.ico} ${meal.n}${isCustom?'<span class="cs">✦</span>':''}${mBadge}${wBadge}`;
+    btn.title=atWeeklyCap?`Week limit (${wCap}×) reached`:(atMonthlyCap?`Month limit (${cap}×) reached`:(!past&&!isVal?'Conflict with nearby meals':''));
     btn.onclick=()=>{
       if(blocked)return;
       monthStore[monthIdx].days[dayInMonth]=meal.id;
@@ -940,13 +965,23 @@ function makeMealRow(m,isDefault){
   row.className='meal-row'+(isDefault?' default-row':'')+(isDisabled?' disabled-meal':'');
   const cap=capFor(m.id);
   const capDisplay=cap===Infinity?'∞':cap;
+  const wCap=weeklyCapFor(m.id);
+  const wCapDisplay=wCap===Infinity?'∞':wCap;
   const capSection=m.alwaysValid?'':`
     <div class="cap-row">
       <span class="cap-label">Max per month:</span>
       <div class="cap-ctrl">
-        <button class="cap-btn" data-dir="-1" data-id="${m.id}">−</button>
+        <button class="cap-btn" data-type="month" data-dir="-1" data-id="${m.id}">−</button>
         <span class="cap-val" id="capval-${m.id}">${capDisplay}</span>
-        <button class="cap-btn" data-dir="1" data-id="${m.id}">+</button>
+        <button class="cap-btn" data-type="month" data-dir="1" data-id="${m.id}">+</button>
+      </div>
+    </div>
+    <div class="cap-row">
+      <span class="cap-label">Max per week:</span>
+      <div class="cap-ctrl">
+        <button class="cap-btn" data-type="week" data-dir="-1" data-id="${m.id}">−</button>
+        <span class="cap-val" id="wcapval-${m.id}">${wCapDisplay}</span>
+        <button class="cap-btn" data-type="week" data-dir="1" data-id="${m.id}">+</button>
       </div>
     </div>`;
 
@@ -982,14 +1017,23 @@ function makeMealRow(m,isDefault){
   row.querySelectorAll('.cap-btn').forEach(btn=>{
     btn.onclick=()=>{
       const id=btn.dataset.id;
-      const cur=capFor(id);
+      const type=btn.dataset.type;
+      const isWeek=type==='week';
+      const cur=isWeek?weeklyCapFor(id):capFor(id);
       const next=btn.dataset.dir==='1'
-        ?(cur===Infinity?Infinity:Math.min(cur+1,10))
+        ?(cur===Infinity?Infinity:Math.min(cur+1,isWeek?7:10))
         :(cur<=1?1:cur-1);
-      setCapFor(id,next);
-      const el=document.getElementById('capval-'+id);
-      if(el)el.textContent=next===Infinity?'∞':next;
-      showSnack(`${m.n}: max ${next===Infinity?'unlimited':next+'×'}/month`);
+      if(isWeek){
+        setWeeklyCapFor(id,next);
+        const el=document.getElementById('wcapval-'+id);
+        if(el)el.textContent=next===Infinity?'∞':next;
+        showSnack(`${m.n}: max ${next===Infinity?'unlimited':next+'×'}/week`);
+      }else{
+        setCapFor(id,next);
+        const el=document.getElementById('capval-'+id);
+        if(el)el.textContent=next===Infinity?'∞':next;
+        showSnack(`${m.n}: max ${next===Infinity?'unlimited':next+'×'}/month`);
+      }
     };
   });
 
@@ -1337,7 +1381,7 @@ document.getElementById('rbeClose').addEventListener('click',()=>rbeWrap.classLi
 // ─────────────────────────────────────────────────────────────────────────────
 // BACKUP & RESTORE
 // ─────────────────────────────────────────────────────────────────────────────
-const ALL_KEYS=[STORE_KEY,CUSTOM_KEY,CAPS_KEY,DISABLED_KEY,RECIPES_KEY];
+const ALL_KEYS=[STORE_KEY,CUSTOM_KEY,CAPS_KEY,WEEKLY_CAPS_KEY,DISABLED_KEY,RECIPES_KEY];
 const bkWrap=document.getElementById('bkWrap');
 let pendingRestore=null;
 
