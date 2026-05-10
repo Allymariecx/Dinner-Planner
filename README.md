@@ -1,152 +1,74 @@
-[README.md](https://github.com/user-attachments/files/27552742/README.md)
-# Dinner Planner 2026–2027 — Full User Guide
+# fooendar 🍽
+
+**A smart dinner planner that generates your monthly meal calendar and keeps your recipes in one place.**
+
+No account. No app store. No ads. Just open the link and start planning.
+
+🔗 **[Open fooendar](https://allymariecx.github.io/Dinner-Planner/)**
 
 ---
 
-## Getting Started
+## Install as an App
 
-The planner lives entirely in a single HTML file hosted at your GitHub Pages URL. No login, no account, no internet connection required after the page loads. Everything you do is saved automatically to your browser's localStorage, meaning your data persists between visits as long as you're on the same device and browser.
+fooendar works as a full app on both iPhone and Android — no app store required.
 
-When you first open it, the planner lands on the **current month** automatically. If the current month hasn't been generated yet, it builds one on the spot using the default meal pool.
+### iPhone / iPad
+1. Open the link in **Safari**
+2. Tap the **Share** button (the box with an arrow)
+3. Tap **Add to Home Screen**
+4. Tap **Add**
 
----
+fooendar will appear on your home screen with its icon and launch fullscreen, just like a native app.
 
-## The Calendar
+### Android
+1. Open the link in **Chrome**
+2. Chrome will show a prompt at the bottom — **"Add fooendar to Home screen"** — tap it
+3. If the prompt doesn't appear, tap the **⋮ menu** → **Add to Home screen**
 
-### How months generate
-Each month is built **on demand** the first time you navigate to it. The generator pulls from your active meal pool and follows three rules when placing meals:
-
-- **No back-to-back repeats** — the same meal can never appear on consecutive days
-- **One pasta per calendar week** — pasta meals (Spaghetti, Alfredo, and any custom pasta you add) are limited to once per Sun–Sat calendar week. This means if pasta lands on a Wednesday, it can appear again the following Monday since that's a new week
-- **Monthly cap** — each meal has a maximum number of times it can appear in a single month (default is 4×). Frozen is exempt from this
-
-Frozen is intentionally excluded from auto-generation entirely — it only ever appears when you manually place it.
-
-### Month status badges
-Every month shows one of three states beneath its name:
-
-- **🔒 Past month** — the month is in the past, locked, cannot be regenerated
-- **📅 Current month** — locked, cannot be regenerated
-- **✨ Future** — not yet locked, shows a **↺ Regenerate month** button
-
-Future months can be freely regenerated before they become the current month. Once a month locks it stays as-is, but you can still manually swap any individual day.
-
-### Navigation
-Use the **← →** arrow buttons to move between months. The progress dots at the top show where you are across all 12 months.
+fooendar will appear in your app drawer and home screen like any other app.
 
 ---
 
-## Swapping a Meal
+## Features
 
-Tap or click any meal pill on the calendar to open the swap panel for that day.
+**📅 Smart calendar generation**
+Each month generates automatically from your meal pool the first time you visit it. The planner makes sure no meal repeats back to back, respects weekly and monthly frequency limits you set, and spaces pasta meals sensibly. Past months lock in so your history stays stable. Future months can be regenerated anytime before they arrive.
 
-### Future and current days
-The swap panel shows:
+**🔄 Swap any meal**
+Tap any day to change its meal. Pick from the full meal list, hit Auto-fill to let the planner choose a valid replacement, or use the Frozen button as an instant no-cook fallback — always available no matter what.
 
-- **🔀 Auto-fill for me** — picks a random valid meal following all the rules
-- **🧊 Frozen — quick night!** — always available regardless of any rules, shown as a dedicated button separate from the rest
-- **Full meal list** — every active meal shown as a colored pill. Each one displays a count badge (e.g. `2/4`) showing how many times it already appears that month vs. its cap
+**✦ Manage your meals**
+Add your own meals to the rotation with a custom name, category, and icon. Set a maximum for how many times each meal can appear per week and per month. Disable meals you're taking a break from without permanently removing them. Re-enable them anytime.
 
-Meals that are blocked show as faded and unclickable. There are two reasons a meal gets blocked:
+**📖 Recipe book**
+Attach a recipe to any meal — ingredients, a photo, a link to the recipe, and notes. Also supports standalone recipes for things you cook occasionally but don't want in the dinner rotation.
 
-- **Conflict** — it would create a back-to-back repeat with the day before or after, or it would put pasta in the same calendar week as another pasta
-- **Cap reached** — it's already hit its monthly maximum. Hovering shows which reason applies
+**📅 Past day editing**
+Already cooked something different from what was planned? Tap any past day to log what you actually had. No restrictions apply to past days.
 
-Tapping a valid meal swaps it in immediately and a snackbar confirms the change.
+**💾 Backup & restore**
+Download a full backup of your calendar, meals, caps, and recipes as a single file. Restore it on any device to carry your planner across browsers or phones.
 
-### Past days
-Any day before today opens with a green notice — **"Past day — no restrictions apply."** Every single meal is shown as available including disabled ones, since you may have actually eaten something that's no longer in your regular rotation. Auto-fill is hidden since there's no point randomizing history. This lets you accurately log what you actually had if you deviated from the plan.
-
----
-
-## Manage Meals
-
-The **✦ Manage Meals** button opens the meal management panel, which is split into three sections.
-
-### Add a new meal
-Fill in:
-- **Meal name** — whatever you want to call it
-- **Category** — sets the color. Options are Easy night (gray), Hearty (green), Sandwiches & burgers (coral), Tacos/Mexican (amber), or Pasta (purple). Pasta meals follow the one-per-week rule
-- **Icon** — pick an emoji from the grid
-
-Once added, the meal appears as an option when you manually swap any day. It's also included in the generation pool for any future months that haven't been generated yet. Already-generated months won't automatically include it unless you hit Regenerate on them.
-
-### Your custom meals
-Lists every meal you've added. Each one shows:
-- **Disable / Enable toggle** — removes the meal from the generation pool and swap options without permanently deleting it. Useful for taking a break from something. Shows "— not in rotation" when disabled
-- **Max per month stepper** — tap − and + to set how many times this meal can appear in a single month (1–10). Changes take effect immediately in the swap panel's count badges
-- **Remove button** — permanently deletes the meal
-
-### Default meals
-The 11 built-in meals. They work identically to custom meals with the same Disable toggle and monthly cap stepper. Frozen cannot be disabled since it's the always-available fallback. Default meals can't be permanently removed, only disabled.
+**🖨 Print / PDF**
+Print any month or save it as a PDF directly from the browser.
 
 ---
 
-## Recipe Book
+## Cross-Device Use
 
-The **📖 Recipe Book** button opens a card grid showing every meal in your planner pool.
+fooendar saves everything to your browser's local storage — no account or server needed. To move your data to another device:
 
-### Planner meal recipes
-Every meal appears as a card. Meals without a recipe show a dashed "+ Add recipe" prompt. Meals with a recipe show their photo (if uploaded), ingredient count, and a clickable link to the recipe source.
-
-Clicking any card opens the **recipe editor** with two columns:
-
-- **Left column — Ingredients** — a dynamic list. Use the + button to add as many ingredients as you need. Tap × on any row to remove it
-- **Right column — Photo, link, and notes**
-  - Photo is optional. Click the box to upload an image from your device. If a photo is uploaded it shows as a preview; hover to change or remove it
-  - Recipe link — paste a URL (e.g. a YouTube video, AllRecipes page, or any website)
-  - Notes/description — free text for tips, variations, or a short description
-
-If no photo is uploaded the link and notes expand to fill the full right column naturally.
-
-Hit **Save recipe** to store it. The card in the Recipe Book updates immediately. A **Remove recipe** button appears when editing an existing recipe.
-
-### Standalone recipes
-These are recipes that aren't tied to any planner meal — things you cook occasionally but don't want in the dinner rotation. Hit **+ Add recipe** in the Recipe Book header to create one. They show in their own section beneath the planner meals and work identically to meal recipes with the same editor.
+1. Open fooendar and tap **💾 Backup**
+2. Download the backup file
+3. Transfer it to your other device (AirDrop, Google Drive, email, etc.)
+4. Open fooendar on the new device, tap **💾 Backup**, and restore the file
 
 ---
 
-## Backup & Restore
+## Updating the App
 
-The **💾 Backup** button opens the backup panel.
-
-### Downloading a backup
-Click **Download backup file**. The planner bundles all five data stores into a single timestamped `.json` file:
-
-- Your full generated calendar (all months, all manual swaps)
-- Custom meals
-- Monthly caps
-- Disabled meals
-- Recipes (including photos stored as base64)
-
-The filename includes today's date, e.g. `dinner-planner-backup-2026-05-09.json`. Save it anywhere — iCloud, Google Drive, a USB drive, an email to yourself.
-
-### Restoring a backup
-Drag a backup `.json` file onto the drop zone or click to browse for it. Before anything is touched a confirmation panel appears showing:
-- The date the backup was made
-- A summary of what's inside (months, custom meals, recipes)
-
-You can cancel with no changes made. Hit **Restore & reload** to apply it — everything is written back to localStorage and the page refreshes. Your planner comes back exactly as it was when that backup was taken.
-
-### Cross-device workflow
-1. On your main device, download a backup
-2. Transfer the `.json` file to your other device (AirDrop, Drive, email, etc.)
-3. On the other device, open the planner and restore the file
+When a new version is pushed, fooendar updates automatically in the background the next time you open it. You never need to reinstall or do anything — it just updates silently like a website.
 
 ---
 
-## Print / PDF
-
-The **🖨 Print / PDF** button triggers your browser's native print dialog. The planner includes a print stylesheet that hides all buttons, navigation, and the progress bar — only the calendar grid itself prints. From the print dialog choose **Save as PDF** to get a clean, shareable PDF of whichever month is currently displayed.
-
----
-
-## Reset All
-
-The **↺ Reset All** button clears every generated month entirely. All 12 months revert to ungenerated and will be freshly built one by one as you navigate to them using your current meal pool. Your custom meals, caps, disabled meals, and recipes are **not** affected — only the calendar itself is cleared. A confirmation prompt appears before anything is deleted.
-
----
-
-## Data & Privacy
-
-Everything lives in your browser's localStorage under the domain the file is hosted on. Nothing is ever sent to a server. If you clear your browser's site data, localStorage is wiped — which is why the backup system exists. Switching browsers or devices starts with a clean slate unless you restore a backup file.
+*Built as a PWA — works offline, installs to your home screen, and runs entirely in the browser.*
