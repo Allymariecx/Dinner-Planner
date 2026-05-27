@@ -96,6 +96,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .meaty   {background:#E1F5EE;color:#085041}
 .handheld{background:#FAECE7;color:#712B13}
 .taco    {background:#FEF0D9;color:#6B4211}
+.crockpot{background:#F5EBE0;color:#6B3510}
 
 .ov{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.28);display:none}
 .ov.open{display:block}
@@ -199,6 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .rb-card-empty:hover{border-color:var(--accent);color:var(--accent)}
 .rb-add-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:10px;font-size:10px;font-weight:700;margin-top:6px;background:var(--card);border:1px solid var(--border);color:var(--muted);cursor:pointer}
 .rb-add-pill:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rb-card-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-top:2px}
 /* editor panel */
 .rbe-wrap{position:fixed;inset:0;z-index:1300;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.35)}
 .rbe-wrap.open{display:flex}
@@ -415,7 +417,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
             <option value="meaty">Hearty (green)</option>
             <option value="handheld">Sandwiches &amp; burgers (coral)</option>
             <option value="taco">Tacos / Mexican (amber)</option>
-            <option value="pasta">Pasta (purple) — one per calendar week</option>
+            <option value="crockpot">Crockpot meal (brown)</option>
+            <option value="pasta">Pasta (purple)</option>
           </select>
         </div>
         <div class="fl">
@@ -472,9 +475,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
     </div>
     <div class="rbe-body">
       <!-- Name (shown only for standalone) -->
-      <div class="fl" id="rbeNameRow" style="display:none">
-        <label class="flabel">Recipe name</label>
-        <input class="finput" id="rbeName" type="text" placeholder="e.g. Grilled Cheese & Tomato Soup" maxlength="60">
+      <!-- Standalone-only fields -->
+      <div id="rbeNameRow" style="display:none">
+        <div class="fl">
+          <label class="flabel">Recipe name</label>
+          <input class="finput" id="rbeName" type="text" placeholder="e.g. Grilled Cheese &amp; Tomato Soup" maxlength="60">
+        </div>
+        <div class="fl" style="margin-top:14px">
+          <label class="flabel">Category <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(used if added to planner)</span></label>
+          <select class="fselect" id="rbeCat">
+            <option value="easy">Easy night</option>
+            <option value="meaty">Hearty</option>
+            <option value="handheld">Sandwiches &amp; burgers</option>
+            <option value="taco">Tacos / Mexican</option>
+            <option value="crockpot">Crockpot meal</option>
+            <option value="pasta">Pasta</option>
+          </select>
+        </div>
+        <div class="fl" style="margin-top:14px">
+          <label class="flabel">Icon <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(used if added to planner)</span></label>
+          <div class="emoji-grid" id="rbeEmojiGrid"></div>
+        </div>
       </div>
       <!-- Two-column layout -->
       <div class="rbe-row">
@@ -561,7 +582,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 // ─────────────────────────────────────────────────────────────────────────────
 // MEALS
 // ─────────────────────────────────────────────────────────────────────────────
-const CAT_LABELS={pasta:"Pasta",easy:"Easy night",meaty:"Hearty",handheld:"Sandwiches & burgers",taco:"Tacos / Mexican"};
+const CAT_LABELS={pasta:"Pasta",easy:"Easy night",meaty:"Hearty",handheld:"Sandwiches & burgers",taco:"Tacos / Mexican",crockpot:"Crockpot meal"};
 const FROZEN_ID="m2";
 
 const DEFAULT_MEALS=[
@@ -1218,6 +1239,24 @@ const rbWrap=document.getElementById('rbWrap');
 const rbeWrap=document.getElementById('rbeWrap');
 let rbeCurrentId=null;
 let rbePhotoData=null;
+let rbePickedEmoji='🍽';
+
+function buildRbeEmojiGrid(){
+  const g=document.getElementById('rbeEmojiGrid');
+  if(!g)return;
+  g.innerHTML='';
+  ['🍝','🍜','🍛','🍲','🥘','🫕','🌮','🌯','🥙','🍕','🍔','🍟','🌭','🥪','🍗','🍖','🥩','🥓','🍳','🥞','🥗','🥡','🍱','🧇','🫔','🌽','🥦','🧄','🥕','🫙','🍤','🦐','🍣','🧀','🥚','🍵','🫒','🥜','🍞','🥐'].forEach(e=>{
+    const b=document.createElement('button');
+    b.className='emoj'+(e===rbePickedEmoji?' picked':'');
+    b.textContent=e;b.type='button';
+    b.onclick=()=>{
+      rbePickedEmoji=e;
+      g.querySelectorAll('.emoj').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+    };
+    g.appendChild(b);
+  });
+}
 
 // ── Open/close recipe book ────────────────────────────────────────────────────
 document.getElementById('recipeBookBtn').addEventListener('click',()=>{
@@ -1275,11 +1314,19 @@ function renderRecipeBook(){
       ${r.photo?`<img class="rb-card-photo" src="${r.photo}" alt="${r.name}">`:`<div class="rb-card-nophoto">📄</div>`}
       <div class="rb-card-body">
         <div class="rb-card-name">${r.name}</div>
+        ${r.cat?`<div class="rb-card-meta"><span class="rb-card-pill ${r.cat}">${CAT_LABELS[r.cat]||r.cat}</span></div>`:''}
         ${r.ingredients.length?`<div class="rb-card-meta">${r.ingredients.length} ingredient${r.ingredients.length>1?'s':''}</div>`:''}
         ${r.link?`<a class="rb-card-link" href="${r.link}" target="_blank" onclick="event.stopPropagation()">🔗 ${r.link.replace(/^https?:\/\//,'').split('/')[0]}</a>`:''}
-        <button class="rb-add-pill" style="margin-top:auto">✏️ Edit</button>
+        <div style="display:flex;gap:6px;margin-top:auto;flex-wrap:wrap">
+          <button class="rb-add-pill">✏️ Edit</button>
+          <button class="rb-add-pill rb-promote-btn" data-id="${r.id}" onclick="event.stopPropagation()">➕ Add to planner</button>
+        </div>
       </div>`;
-    card.addEventListener('click',()=>openEditor(r.id,true));
+    card.querySelector('.rb-add-pill:first-child').addEventListener('click',()=>openEditor(r.id,true));
+    card.querySelector('.rb-promote-btn').addEventListener('click',e=>{
+      e.stopPropagation();
+      promoteToPlanner(r.id);
+    });
     stGrid.appendChild(card);
   });
 }
@@ -1302,8 +1349,14 @@ function openEditor(id,isStandalone){
 
   // Name field (standalone only)
   const nameRow=document.getElementById('rbeNameRow');
-  nameRow.style.display=isStandalone?'flex':'none';
+  nameRow.style.display=isStandalone?'block':'none';
   document.getElementById('rbeName').value=existing?.name||'';
+  if(isStandalone){
+    rbePickedEmoji=existing?.ico||'🍽';
+    buildRbeEmojiGrid();
+    const catSel=document.getElementById('rbeCat');
+    if(catSel)catSel.value=existing?.cat||'easy';
+  }
 
   // Ingredients
   const ingrs=existing?.ingredients||[];
@@ -1378,6 +1431,8 @@ document.getElementById('rbeSave').addEventListener('click',()=>{
   const name=isStandalone?document.getElementById('rbeName').value.trim():(meal?.n||'Recipe');
   if(isStandalone&&!name){showSnack('Please enter a recipe name');return}
 
+  const cat=isStandalone?(document.getElementById('rbeCat')?.value||'easy'):(meal?.c||'easy');
+  const ico=isStandalone?rbePickedEmoji:(meal?.ico||'🍽');
   const ingrs=[...document.getElementById('ingrList').querySelectorAll('.ingr-input')]
     .map(el=>el.value.trim()).filter(Boolean);
 
@@ -1385,6 +1440,7 @@ document.getElementById('rbeSave').addEventListener('click',()=>{
     id,
     name:name||meal?.n,
     mealId:isStandalone?null:id,
+    cat,ico,
     ingredients:ingrs,
     photo:rbePhotoData,
     link:document.getElementById('rbeLink').value.trim(),
@@ -1528,6 +1584,27 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('/Dinner-Planner/sw.js').catch(()=>{});
   });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// PROMOTE STANDALONE RECIPE TO PLANNER MEAL
+// ─────────────────────────────────────────────────────────────────────────────
+function promoteToPlanner(recipeId){
+  const r=recipes[recipeId];
+  if(!r)return;
+  if(!r.name){showSnack('Please add a name to this recipe first');return}
+
+  // Create custom meal
+  const newMealId='c_'+Date.now();
+  const meal={n:r.name,c:r.cat||'easy',ico:r.ico||'🍽',id:newMealId,custom:true};
+  customMeals.push(meal);
+  saveCustom();
+
+  // Re-link the recipe to the new meal
+  recipes[recipeId]={...r,mealId:newMealId,standalone:false};
+  saveRecipes();
+
+  renderRecipeBook();
+  showSnack(`"${r.name}" added to your meal pool ✦`);
 }
 
 </script>
