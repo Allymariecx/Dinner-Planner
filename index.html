@@ -227,6 +227,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .ingr-del:hover{color:#c0392b;background:#fff0ee}
 .ingr-add{background:none;border:1px dashed var(--border);border-radius:8px;padding:7px;font-size:12px;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s}
 .ingr-add:hover{border-color:var(--accent);color:var(--accent)}
+.step-num{font-size:11px;font-weight:700;color:var(--muted);min-width:18px;text-align:right;flex-shrink:0}
 .rbe-save{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
 .rbe-save:hover{background:#4a6642}
 .rbe-delete{background:none;border:1px solid #e0b8b0;border-radius:10px;padding:10px;font-size:13px;color:#b03020;cursor:pointer;width:100%;font-weight:600}
@@ -505,6 +506,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
             <div class="flabel" style="margin-bottom:8px">Ingredients</div>
             <div class="ingr-list" id="ingrList"></div>
             <button class="ingr-add" id="ingrAdd">+ Add ingredient</button>
+          </div>
+          <div>
+            <div class="flabel" style="margin-bottom:8px">Recipe steps</div>
+            <div class="ingr-list" id="stepList"></div>
+            <button class="ingr-add" id="stepAdd">+ Add step</button>
           </div>
         </div>
         <!-- Right: Photo + Link/Description -->
@@ -1285,7 +1291,7 @@ function renderRecipeBook(){
         ${r.photo?`<img class="rb-card-photo" src="${r.photo}" alt="${meal.n}">`:`${SPRITES[meal.id]?`<img class="rb-card-sprite" src="${SPRITES[meal.id]}" alt="${meal.n}">`:'<div class="rb-card-nophoto">'+meal.ico+'</div>'}`}
         <div class="rb-card-body">
           <div class="rb-card-name">${meal.n}</div>
-          ${r.ingredients.length?`<div class="rb-card-meta">${r.ingredients.length} ingredient${r.ingredients.length>1?'s':''}</div>`:''}
+          ${r.ingredients.length?`<div class="rb-card-meta">${r.ingredients.length} ingredient${r.ingredients.length>1?'s':''}${r.steps?.length?` · ${r.steps.length} step${r.steps.length>1?'s':''}`:''}  </div>`:''}
           ${r.link?`<a class="rb-card-link" href="${r.link}" target="_blank" onclick="event.stopPropagation()">🔗 ${r.link.replace(/^https?:\/\//,'').split('/')[0]}</a>`:''}
           <button class="rb-add-pill" style="margin-top:auto">✏️ Edit recipe</button>
         </div>`;
@@ -1308,6 +1314,8 @@ function renderRecipeBook(){
   stGrid.innerHTML='';
   stTitle.style.display=standAlones.length?'block':'none';
   standAlones.forEach(r=>{
+    const linkedMeal=r.mealId?allMeals().find(m=>m.id===r.mealId):null;
+    const isPromoted=!!linkedMeal;
     const card=document.createElement('div');
     card.className='rb-card';
     card.innerHTML=`
@@ -1318,15 +1326,16 @@ function renderRecipeBook(){
         ${r.ingredients.length?`<div class="rb-card-meta">${r.ingredients.length} ingredient${r.ingredients.length>1?'s':''}</div>`:''}
         ${r.link?`<a class="rb-card-link" href="${r.link}" target="_blank" onclick="event.stopPropagation()">🔗 ${r.link.replace(/^https?:\/\//,'').split('/')[0]}</a>`:''}
         <div style="display:flex;gap:6px;margin-top:auto;flex-wrap:wrap">
-          <button class="rb-add-pill">✏️ Edit</button>
-          <button class="rb-add-pill rb-promote-btn" data-id="${r.id}" onclick="event.stopPropagation()">➕ Add to planner</button>
+          <button class="rb-add-pill edit-btn">✏️ Edit</button>
+          ${isPromoted
+            ?`<span class="rb-add-pill" style="background:var(--accent);color:#fff;border-color:var(--accent);cursor:default">✓ In planner</span>`
+            :`<button class="rb-add-pill rb-promote-btn" data-id="${r.id}" onclick="event.stopPropagation()">➕ Add to planner</button>`
+          }
         </div>
       </div>`;
-    card.querySelector('.rb-add-pill:first-child').addEventListener('click',()=>openEditor(r.id,true));
-    card.querySelector('.rb-promote-btn').addEventListener('click',e=>{
-      e.stopPropagation();
-      promoteToPlanner(r.id);
-    });
+    card.querySelector('.edit-btn').addEventListener('click',()=>openEditor(r.id,true));
+    const promBtn=card.querySelector('.rb-promote-btn');
+    if(promBtn) promBtn.addEventListener('click',e=>{e.stopPropagation();promoteToPlanner(r.id);});
     stGrid.appendChild(card);
   });
 }
@@ -1338,10 +1347,10 @@ document.getElementById('rbAddStandaloneBtn').addEventListener('click',()=>{
 });
 
 function openEditor(id,isStandalone){
-  rbeCurrentId=id;
   rbePhotoData=null;
-
-  const existing=recipes[id];
+  // Recipe may be stored under its own key or found by mealId (for promoted standalone recipes)
+  const existing=recipes[id]||Object.values(recipes).find(r=>r.mealId===id);
+  rbeCurrentId=existing?existing.id:id; // always save to the recipe's real key
   const meal=isStandalone?null:allMeals().find(m=>m.id===id);
 
   // Title
@@ -1361,6 +1370,10 @@ function openEditor(id,isStandalone){
   // Ingredients
   const ingrs=existing?.ingredients||[];
   renderIngrList(ingrs);
+
+  // Steps
+  const steps=existing?.steps||[];
+  renderStepList(steps);
 
   // Photo
   rbePhotoData=existing?.photo||null;
@@ -1391,6 +1404,31 @@ function addIngrRow(val=''){
   list.appendChild(row);
 }
 document.getElementById('ingrAdd').addEventListener('click',()=>addIngrRow());
+
+function renderStepList(steps){
+  const list=document.getElementById('stepList');list.innerHTML='';
+  (steps.length?steps:['']).forEach(v=>addStepRow(v));
+  renumberSteps();
+}
+
+function addStepRow(val=''){
+  const list=document.getElementById('stepList');
+  const row=document.createElement('div');row.className='ingr-row';
+  row.innerHTML=`<span class="step-num"></span><input class="ingr-input" type="text" placeholder="e.g. Boil water for 10 min..." value="${val.replace(/"/g,'&quot;')}"><button class="ingr-del" type="button" title="Remove">×</button>`;
+  row.querySelector('.ingr-del').onclick=()=>{
+    if(list.children.length>1)row.remove();
+    renumberSteps();
+  };
+  list.appendChild(row);
+  renumberSteps();
+}
+
+function renumberSteps(){
+  const rows=document.getElementById('stepList').querySelectorAll('.step-num');
+  rows.forEach((el,i)=>el.textContent=(i+1)+'.');
+}
+
+document.getElementById('stepAdd').addEventListener('click',()=>addStepRow());
 
 function renderPhoto(){
   const box=document.getElementById('rbePhotoBox');
@@ -1435,6 +1473,8 @@ document.getElementById('rbeSave').addEventListener('click',()=>{
   const ico=isStandalone?rbePickedEmoji:(meal?.ico||'🍽');
   const ingrs=[...document.getElementById('ingrList').querySelectorAll('.ingr-input')]
     .map(el=>el.value.trim()).filter(Boolean);
+  const steps=[...document.getElementById('stepList').querySelectorAll('.ingr-input')]
+    .map(el=>el.value.trim()).filter(Boolean);
 
   recipes[id]={
     id,
@@ -1442,6 +1482,7 @@ document.getElementById('rbeSave').addEventListener('click',()=>{
     mealId:isStandalone?null:id,
     cat,ico,
     ingredients:ingrs,
+    steps,
     photo:rbePhotoData,
     link:document.getElementById('rbeLink').value.trim(),
     description:document.getElementById('rbeDesc').value.trim(),
@@ -1593,18 +1634,23 @@ function promoteToPlanner(recipeId){
   if(!r)return;
   if(!r.name){showSnack('Please add a name to this recipe first');return}
 
+  // Check if already promoted
+  if(r.mealId&&allMeals().find(m=>m.id===r.mealId)){
+    showSnack(`"${r.name}" is already in your planner`);return;
+  }
+
   // Create custom meal
   const newMealId='c_'+Date.now();
   const meal={n:r.name,c:r.cat||'easy',ico:r.ico||'🍽',id:newMealId,custom:true};
   customMeals.push(meal);
   saveCustom();
 
-  // Re-link the recipe to the new meal
-  recipes[recipeId]={...r,mealId:newMealId,standalone:false};
+  // Link recipe to new meal — keep standalone:true so it stays visible in Recipe Book
+  recipes[recipeId]={...r,mealId:newMealId,standalone:true};
   saveRecipes();
 
   renderRecipeBook();
-  showSnack(`"${r.name}" added to your meal pool ✦`);
+  showSnack(`"${r.name}" added to your meal pool ✦ — find it in Manage Meals`);
 }
 
 </script>

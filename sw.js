@@ -1,6 +1,6 @@
 // fooendar service worker
 // Bump CACHE_VERSION when you deploy a new version of the HTML
-const CACHE_VERSION = 'fooendar-v5';
+const CACHE_VERSION = 'fooendar-v8';
 const ASSETS = [
   '/Dinner-Planner/index.html',
   '/Dinner-Planner/manifest.json',
