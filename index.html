@@ -204,10 +204,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 /* editor panel */
 .rbe-wrap{position:fixed;inset:0;z-index:1300;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.35)}
 .rbe-wrap.open{display:flex}
-.rbe{background:var(--card);border-radius:20px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.24);padding:28px}
-.rbe-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
+.rbe{background:var(--card);border-radius:20px;width:100%;max-width:580px;max-height:92vh;box-shadow:0 24px 64px rgba(0,0,0,.24);display:flex;flex-direction:column;overflow:hidden}
+.rbe-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;padding:24px 28px 16px;border-bottom:1px solid var(--border)}
 .rbe-title{font-size:1.1rem;font-weight:700;letter-spacing:-.02em}
-.rbe-body{display:flex;flex-direction:column;gap:18px}
+.rbe-body{display:flex;flex-direction:column;gap:18px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 28px;flex:1;min-height:0}
+.rbe-footer{flex-shrink:0;padding:14px 28px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;background:var(--card)}
 .rbe-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .rbe-col{display:flex;flex-direction:column;gap:14px}
 .rbe-photo-box{width:100%;height:160px;border:1.5px dashed var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:var(--bg);transition:border-color .15s;position:relative;overflow:hidden}
@@ -220,8 +221,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 .rbe-photo-clear{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;z-index:2}
 .rbe-photo-box:hover .rbe-photo-clear{display:flex}
 .ingr-list{display:flex;flex-direction:column;gap:6px}
-.ingr-row{display:flex;align-items:center;gap:6px}
-.ingr-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;background:var(--bg);color:var(--text);outline:none;font-family:inherit}
+.ingr-row{display:flex;align-items:flex-start;gap:6px}
+.ingr-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;resize:none;overflow:hidden;min-height:34px;line-height:1.45;display:block;width:100%}
 .ingr-input:focus{border-color:#8aaa80}
 .ingr-del{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:2px 4px;border-radius:5px;line-height:1}
 .ingr-del:hover{color:#c0392b;background:#fff0ee}
@@ -309,7 +310,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 
   /* Recipe editor */
   .rbe-wrap{padding:.5rem .5rem 0;align-items:flex-end}
-  .rbe{border-radius:18px 18px 0 0;max-height:90vh;padding:20px 18px 28px}
+  .rbe{border-radius:18px 18px 0 0;max-height:90vh}
+  .rbe-hd{padding:18px 18px 14px}
+  .rbe-body{padding:16px 18px}
+  .rbe-footer{padding:12px 18px calc(12px + env(safe-area-inset-bottom))}
   .rbe-row{grid-template-columns:1fr;gap:14px}
   .rbe-photo-box{height:130px}
 
@@ -535,6 +539,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
           </div>
         </div>
       </div>
+    </div>
+    <div class="rbe-footer">
       <button class="rbe-save" id="rbeSave">Save recipe</button>
       <button class="rbe-delete" id="rbeDelete" style="display:none">Remove recipe</button>
     </div>
@@ -1389,6 +1395,8 @@ function openEditor(id,isStandalone){
   rbeWrap.classList.add('open');
 }
 
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
+
 function renderIngrList(ingrs){
   const list=document.getElementById('ingrList');list.innerHTML='';
   (ingrs.length?ingrs:['']).forEach((v,i)=>{
@@ -1399,7 +1407,11 @@ function renderIngrList(ingrs){
 function addIngrRow(val=''){
   const list=document.getElementById('ingrList');
   const row=document.createElement('div');row.className='ingr-row';
-  row.innerHTML=`<input class="ingr-input" type="text" placeholder="e.g. 2 cups flour" value="${val.replace(/"/g,'&quot;')}"><button class="ingr-del" type="button" title="Remove">×</button>`;
+  row.innerHTML=`<textarea class="ingr-input" rows="1" placeholder="e.g. 2 cups flour"></textarea><button class="ingr-del" type="button" title="Remove">×</button>`;
+  const ta=row.querySelector('.ingr-input');
+  ta.value=val;
+  ta.addEventListener('input',()=>autoGrow(ta));
+  setTimeout(()=>autoGrow(ta),0);
   row.querySelector('.ingr-del').onclick=()=>{if(list.children.length>1)row.remove()};
   list.appendChild(row);
 }
@@ -1414,7 +1426,11 @@ function renderStepList(steps){
 function addStepRow(val=''){
   const list=document.getElementById('stepList');
   const row=document.createElement('div');row.className='ingr-row';
-  row.innerHTML=`<span class="step-num"></span><input class="ingr-input" type="text" placeholder="e.g. Boil water for 10 min..." value="${val.replace(/"/g,'&quot;')}"><button class="ingr-del" type="button" title="Remove">×</button>`;
+  row.innerHTML=`<span class="step-num"></span><textarea class="ingr-input" rows="1" placeholder="e.g. Boil water for 10 min..."></textarea><button class="ingr-del" type="button" title="Remove">×</button>`;
+  const ta=row.querySelector('.ingr-input');
+  ta.value=val;
+  ta.addEventListener('input',()=>autoGrow(ta));
+  setTimeout(()=>autoGrow(ta),0);
   row.querySelector('.ingr-del').onclick=()=>{
     if(list.children.length>1)row.remove();
     renumberSteps();
